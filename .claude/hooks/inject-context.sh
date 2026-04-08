@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# UserPromptSubmit hook — injects lightweight repo state on every prompt
-# so Claude always knows the current branch / dirty state.
+# UserPromptSubmit hook — 매 프롬프트마다 가벼운 저장소 상태를 주입하여
+# Claude가 현재 브랜치/dirty 상태를 항상 알 수 있게 한다.
+#
+# 토큰 비용 주의: 이 hook은 *매 프롬프트마다* 컨텍스트에 들어간다.
+# 의도적으로 작게 유지한다(현재 약 3줄).
 
 set -euo pipefail
 
