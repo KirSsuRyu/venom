@@ -1,0 +1,16 @@
+# Venom 자체 — deep 모드 백업
+.claude/.venom-backup/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Python (개발 시)
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

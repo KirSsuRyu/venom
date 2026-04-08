@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# PreToolUse hook for Bash — blocks destructive / unsafe shell commands
-# regardless of language or stack. Reads tool input as JSON on stdin.
+# Bash 도구용 PreToolUse hook — 언어/스택 무관하게 파괴적·위험한 셸 명령을
+# 차단한다. 도구 입력은 stdin으로 JSON으로 들어온다.
 
 set -euo pipefail
 
@@ -22,36 +22,19 @@ deny() {
   exit 0
 }
 
-# --- patterns that are always denied ---------------------------------------
-patterns=(
-  'rm[[:space:]]+-rf?[[:space:]]+/'              # rm -rf /
-  'rm[[:space:]]+-rf?[[:space:]]+~'              # rm -rf ~
-  'rm[[:space:]]+-rf?[[:space:]]+\*'             # rm -rf *
-  'rm[[:space:]]+-rf?[[:space:]]+\.'             # rm -rf .
-  'mkfs(\.|[[:space:]])'                          # filesystem format
-  'dd[[:space:]]+if=.*of=/dev/'                   # raw disk write
-  ':\(\)\{.*\}'                                   # fork bomb
-  'sudo[[:space:]]'                               # sudo anything
-  'chmod[[:space:]]+-R[[:space:]]+777'            # world-writable recursive
-  'curl[[:space:]].*\|[[:space:]]*(sh|bash|zsh)'  # curl | sh
-  'wget[[:space:]].*\|[[:space:]]*(sh|bash|zsh)' # wget | sh
-  'git[[:space:]]+push[[:space:]].*--force'       # force push
-  'git[[:space:]]+push[[:space:]].*[[:space:]]-f([[:space:]]|$)'
-  'git[[:space:]]+reset[[:space:]]+--hard'        # destructive reset
-  'git[[:space:]]+clean[[:space:]]+-fd'           # destructive clean
-  '--no-verify'                                   # bypass git hooks
-  '>[[:space:]]*/dev/sd[a-z]'                     # write to raw disk
-)
+# 위험 패턴은 단일 소스에서 가져온다.
+# shellcheck source=lib/dangerous-patterns.sh
+source "$(dirname "$0")/lib/dangerous-patterns.sh"
 
-for p in "${patterns[@]}"; do
+for p in "${DANGEROUS_PATTERNS[@]}"; do
   if [[ "$CMD" =~ $p ]]; then
-    deny "Blocked by harness: command matches dangerous pattern '$p'. If you really need this, ask the user explicitly."
+    deny "하네스가 차단함: 명령이 위험 패턴 '$p'와 일치합니다. 정말 필요하다면 사용자에게 명시적으로 요청하세요."
   fi
 done
 
-# --- writes to sensitive files ---------------------------------------------
-if [[ "$CMD" =~ \>[[:space:]]*(\.env|.*\.pem|.*id_rsa|.*\.aws/credentials) ]]; then
-  deny "Blocked: refusing to write to a credentials/secret file."
+# 비밀 파일에 대한 쓰기 redirect
+if [[ "$CMD" =~ $SECRET_REDIRECT_PATTERN ]]; then
+  deny "차단됨: 자격증명/비밀 파일에 쓰기를 거부합니다."
 fi
 
 exit 0

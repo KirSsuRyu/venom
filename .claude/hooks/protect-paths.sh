@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# PreToolUse hook for Write|Edit — refuses to write to protected paths
-# (secrets, lockfiles, generated artifacts, OS dirs).
+# Write|Edit 도구용 PreToolUse hook — 보호 경로(비밀, 락파일, 생성물,
+# OS 디렉토리)에 대한 쓰기를 거부한다.
 
 set -euo pipefail
 
@@ -24,15 +24,15 @@ deny() {
 
 case "$PATH_ARG" in
   /etc/*|/usr/*|/bin/*|/sbin/*|/boot/*|/sys/*|/proc/*)
-    deny "Blocked: refusing to write to system path '$PATH_ARG'." ;;
+    deny "차단됨: 시스템 경로 '$PATH_ARG'에 쓰기를 거부합니다." ;;
   */.git/*)
-    deny "Blocked: refusing to write inside .git/. Use git commands instead." ;;
+    deny "차단됨: .git/ 내부에 쓰기를 거부합니다. 대신 git 명령을 사용하세요." ;;
   */.env|*/.env.*|*/id_rsa|*/id_ed25519|*/.aws/credentials|*/.ssh/*)
-    deny "Blocked: refusing to write to a secrets/credentials file." ;;
+    deny "차단됨: 비밀/자격증명 파일에 쓰기를 거부합니다." ;;
   */node_modules/*|*/vendor/*|*/.venv/*|*/dist/*|*/build/*|*/.next/*|*/target/*)
-    deny "Blocked: refusing to write inside a generated/dependency directory ('$PATH_ARG'). Edit source files instead." ;;
+    deny "차단됨: 생성물/의존성 디렉토리 '$PATH_ARG'에 쓰기를 거부합니다. 소스 파일을 편집하세요." ;;
   *package-lock.json|*yarn.lock|*pnpm-lock.yaml|*Cargo.lock|*poetry.lock|*Pipfile.lock|*go.sum)
-    deny "Blocked: refusing to hand-edit lockfile '$PATH_ARG'. Use the package manager instead." ;;
+    deny "차단됨: 락파일 '$PATH_ARG'를 손으로 편집하는 것을 거부합니다. 패키지 매니저를 사용하세요." ;;
 esac
 
 exit 0

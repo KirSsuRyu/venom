@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# PostToolUse hook for Write|Edit — auto-formats edited file using whatever
-# formatter is available for its extension. Silent if no formatter is found.
-# Language-agnostic: detects, but never installs.
+# Write|Edit 도구용 PostToolUse hook — 편집된 파일을 확장자에 맞는 포매터로
+# 자동 정리한다. 사용 가능한 포매터가 없으면 조용히 통과한다.
+# 언어 무관: 감지만 하고 설치는 절대 하지 않는다.
 
 set -euo pipefail
 
@@ -11,7 +11,12 @@ FILE="$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.path 
 [[ -z "$FILE" || ! -f "$FILE" ]] && exit 0
 
 have() { command -v "$1" >/dev/null 2>&1; }
-run() { "$@" >/dev/null 2>&1 || true; }
+# 어떤 포매터가 어떤 파일에 돌았는지 stderr로 1줄 알린다(가시성).
+# stdout은 비워둔다(PostToolUse는 stdout이 컨텍스트로 들어가므로 토큰 비용 발생).
+run() {
+  "$@" >/dev/null 2>&1 || true
+  echo "[venom auto-format] $* (file: $(basename "$FILE"))" >&2
+}
 
 case "$FILE" in
   *.py)
