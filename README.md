@@ -1,6 +1,5 @@
 # 🐍 Venom
 
-[![hooks](https://github.com/KirSsuRyu/venom/actions/workflows/hooks.yml/badge.svg)](https://github.com/KirSsuRyu/venom/actions/workflows/hooks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Works with Claude Code](https://img.shields.io/badge/works%20with-Claude%20Code-8A4FFF)](https://code.claude.com)
 [![English](https://img.shields.io/badge/lang-English-blue.svg)](README.en.md)
