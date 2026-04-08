@@ -1,0 +1,14 @@
+# 사용자 로컬 권한 토글 — 절대 배포 금지
+.claude/settings.local.json
+.claude/.venom-backup/
+
+# 개발/CI/IDE
+.git/
+.github/
+.idea/
+.vscode/
+tests/
+CONTRIBUTING.md
+CHANGELOG.md
+*.log
+.DS_Store

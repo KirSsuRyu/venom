@@ -1,0 +1,3 @@
+# 사용자 로컬 권한 토글 — 절대 npm 패키지에 포함되면 안 됨
+settings.local.json
+.venom-backup/

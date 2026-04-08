@@ -1,0 +1,42 @@
+{
+  "name": "@cgyou/venom-init",
+  "version": "0.1.0",
+  "description": "Venom 하네스(.claude/, CLAUDE.md)를 임의의 프로젝트에 한 줄로 설치/업데이트하는 CLI",
+  "type": "module",
+  "bin": {
+    "venom-init": "bin/venom-init.mjs"
+  },
+  "files": [
+    "bin",
+    "CLAUDE.md",
+    ".claude",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test tests/cli/*.test.mjs"
+  },
+  "keywords": [
+    "claude-code",
+    "claude",
+    "venom",
+    "harness",
+    "cli"
+  ],
+  "homepage": "https://github.com/KirSsuRyu/venom",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KirSsuRyu/venom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KirSsuRyu/venom/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
