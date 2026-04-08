@@ -43,16 +43,42 @@ itself to fit the project it lives in.
 
 ## 🚀 Quick start
 
+### Recommended: one-line npm CLI
+
 ```bash
-# 1) Clone this repo
-git clone https://github.com/KirSsuRyu/venom.git
+cd /path/to/your-project
+npx @kirssu/venom-init
+```
 
-# 2) Install into your project
-bash venom/install.sh /path/to/your-project
+This will:
 
-# 3) In that project, run Claude Code and execute once:
+1. Install `CLAUDE.md` and `.claude/` into the current directory.
+2. If they already exist, back them up to `.venom-backup/<timestamp>/` first.
+3. Always **preserve** `.claude/settings.local.json` (your local permission toggles).
+4. Mark hook scripts executable and add `.venom-backup/` to `.gitignore`.
+
+Options:
+
+```bash
+npx @kirssu/venom-init --dry-run        # plan only, no writes
+npx @kirssu/venom-init --from-git       # fetch from GitHub main instead of bundled copy
+npx @kirssu/venom-init --from-git --ref some-branch
+npx @kirssu/venom-init --no-backup --force   # overwrite without backup (dangerous)
+```
+
+Then in a Claude Code session inside that project:
+
+```
 /venom            # standard absorption (recommended)
 /venom deep       # deep absorption — evolves Venom itself for this project
+```
+
+### Manual: git clone
+
+```bash
+git clone https://github.com/KirSsuRyu/venom.git
+cp -r venom/CLAUDE.md venom/.claude /path/to/your-project/
+chmod +x /path/to/your-project/.claude/hooks/*.sh
 ```
 
 That's it. From this point on, Claude Code in that project:
