@@ -63,6 +63,35 @@ emit_recent_sections() {
   emit_recent_sections "$MEM/mistakes.md"  "Recent mistakes (do NOT repeat)" 10
   emit_recent_sections "$MEM/lessons.md"   "Lessons learned"                  20
   emit_recent_sections "$MEM/decisions.md" "Architectural decisions"          10
+  echo
+
+  # 진화 상태 요약: 반복 실수 태그가 있으면 세션 시작 시 알린다.
+  MISTAKES="$MEM/mistakes.md"
+  if [[ -f "$MISTAKES" && -s "$MISTAKES" ]]; then
+    REPEATED=$(awk '
+      /^```/ { in_fence = !in_fence; next }
+      !in_fence && /^- (태그|tag)/ {
+        n = split($0, parts, "#")
+        for (i = 2; i <= n; i++) {
+          gsub(/[[:space:]]+$/, "", parts[i])
+          gsub(/[[:space:]]+/, "", parts[i])
+          if (parts[i] != "") tags[parts[i]]++
+        }
+      }
+      END {
+        for (t in tags) {
+          if (tags[t] >= 2) printf "%s(%d) ", t, tags[t]
+        }
+      }
+    ' "$MISTAKES")
+    if [[ -n "$REPEATED" ]]; then
+      echo "### ⚡ Evolution needed"
+      echo "Repeated mistake tags: ${REPEATED}"
+      echo "Consider strengthening rules/hooks for these areas (see 55-self-evolution.md)."
+      echo
+    fi
+  fi
+
   echo "## End of project memory"
 } 2>/dev/null || true
 

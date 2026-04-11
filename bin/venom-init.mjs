@@ -330,7 +330,7 @@ function main() {
     log('');
     log('완료. 다음 단계:');
     log('  1) Claude Code 세션을 재시작하세요.');
-    log('  2) 새 세션에서 /venom 또는 /venom deep 을 실행하세요.');
+    log('  2) 새 세션에서 /venom 을 실행하세요.');
   } finally {
     cleanup();
   }

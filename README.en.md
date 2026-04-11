@@ -3,6 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Works with Claude Code](https://img.shields.io/badge/works%20with-Claude%20Code-8A4FFF)](https://code.claude.com)
 [![한국어](https://img.shields.io/badge/lang-한국어-red.svg)](README.md)
+[![简体中文](https://img.shields.io/badge/lang-简体中文-green.svg)](README.zh-CN.md)
+[![繁體中文](https://img.shields.io/badge/lang-繁體中文-orange.svg)](README.zh-TW.md)
 
 > **A drop-in working harness for Claude Code that injects into any project in 5 seconds**
 
@@ -11,8 +13,8 @@ consistently self-correcting in every project. Copy two items, run `/venom`,
 and that project is armed.
 
 The name comes from the concept of *injecting venom to evolve*. Venom is not
-just a rule pack — it's a living working environment that *metamorphoses*
-itself to fit the project it lives in.
+just a rule pack — it's a **living symbiote** that infiltrates a project,
+*metamorphoses* itself to fit, and **keeps learning and evolving** as it works.
 
 ---
 
@@ -30,9 +32,12 @@ itself to fit the project it lives in.
   emits the latest N entries. Denied tool calls are remembered so the next
   session doesn't retry them. Verification gates kill pointless retries
   before they spend tokens. *The harness is a saving, not a cost.*
-- 🧬 **Per-project evolution** — `/venom deep` analyzes the project and
-  *evolves* rules, skills, and hooks to fit its stack, conventions, CI gates,
-  and forbidden patterns. Backups are written to `.claude/.venom-backup/`.
+- 🧬 **Per-project evolution** — `/venom` performs deep analysis of the
+  project's domain, architecture, and patterns, then *evolves* rules, skills,
+  and hooks to fit. Backups are written to `.claude/.venom-backup/`.
+- 🫀 **Living self-evolution** — After `/venom`, Venom stays alive.
+  Same mistake twice → auto-strengthen rules/hooks. Same pattern three times →
+  auto-extract skill. Evolution opportunities detected at every session end.
 - 🌐 **Language-agnostic** — Python, JS/TS, Go, Rust, Java, Ruby, PHP… works
   everywhere. Language detection happens at runtime; missing tools fail silent.
 - 📦 **Drop-in** — only two items (`CLAUDE.md` and `.claude/`) need to land in
@@ -69,8 +74,7 @@ npx @cgyou/venom-init --no-backup --force   # overwrite without backup (dangerou
 Then in a Claude Code session inside that project:
 
 ```
-/venom            # standard absorption (recommended)
-/venom deep       # deep absorption — evolves Venom itself for this project
+/venom            # full absorption — deep domain/architecture/pattern analysis + total evolution
 ```
 
 ### Manual: git clone
@@ -110,6 +114,7 @@ That's it. From this point on, Claude Code in that project:
 | Record denied tool calls to mistakes.md | `record-permission-denied.sh` |
 | Record API turn failures to mistakes.md | `record-stop-failure.sh` |
 | Block stop without verification | `verify-before-stop.sh` |
+| Detect repeated mistakes → suggest evolution | `trigger-evolution.sh` |
 
 ---
 
@@ -125,4 +130,5 @@ Venom's license.
 ---
 
 > *"A good tool doesn't make its user smarter. It makes them unable to be
-> stupid."* — Venom's design philosophy
+> stupid. And the best tool gets smarter on its own every day."*
+> — Venom's design philosophy
