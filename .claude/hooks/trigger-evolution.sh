@@ -63,12 +63,11 @@ if [[ "$UNFILLED" -gt 0 ]]; then
 fi
 
 if $NEEDS_EVOLUTION; then
-  # additionalContext로 Claude에게 진화를 권고 (차단하지 않음)
+  # Stop 훅의 유효한 형식: decision=block + reason으로 Claude에게 진화를 권고.
+  # hookSpecificOutput.additionalContext는 Stop 훅 스키마에 존재하지 않음 → 검증 실패 유발.
   jq -n --arg reasons "$REASONS" '{
-    hookSpecificOutput: {
-      hookEventName: "Stop",
-      additionalContext: ("[venom 진화 감지] " + $reasons + "55-self-evolution.md 프로토콜에 따라 진화를 고려하세요: 반복 실수 → 규칙/hook 강화, 미기입 교훈 → lessons.md 갱신.")
-    }
+    decision: "block",
+    reason: ("[venom 진화 감지] " + $reasons + "55-self-evolution.md 프로토콜에 따라 진화를 고려하세요: 반복 실수 → 규칙/hook 강화, 미기입 교훈 → lessons.md 갱신.")
   }'
 fi
 

@@ -3,6 +3,14 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.1] — 2026-04-11
+
+### Fixed
+- `trigger-evolution.sh` — Stop 훅의 JSON 출력 형식 수정. `hookSpecificOutput.additionalContext`
+  구조는 Stop 훅 스키마에 존재하지 않아 "Hook JSON output validation failed: Invalid input"
+  에러를 유발했음. 올바른 `{"decision":"block","reason":"..."}` 형식으로 교체.
+  다른 프로젝트에 venom 설치 시 매 턴 종료마다 stop hook error가 발생하는 이슈 해결.
+
 ## [2.0.0] — 2026-04-11
 
 ### Added — 살아있는 심비오트
