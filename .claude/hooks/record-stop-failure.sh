@@ -29,8 +29,11 @@ FILE="$MEM_DIR/mistakes.md"
 
 {
   echo "## $(date -u +%Y-%m-%dT%H:%M:%SZ) — 턴 종료 실패 ($ETYPE)"
-  echo "- error_type: $ETYPE"
-  echo "- lesson: 다음 세션에서 이 에러 유형이 재발하면 사용자 환경/계정 설정을 먼저 의심한다."
+  echo "- 맥락: API 에러로 턴이 종료됨"
+  echo "- 한 일: error_type=$ETYPE 에러 발생"
+  echo "- 왜 틀렸나: (Claude should fill — 근본 원인)"
+  echo "- 옳은 접근: 이 에러 유형이 재발하면 사용자 환경/계정 설정을 먼저 의심한다."
+  echo "- 태그: #api #$ETYPE"
   echo
 } >> "$FILE"
 

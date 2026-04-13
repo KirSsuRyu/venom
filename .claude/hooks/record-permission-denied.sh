@@ -25,9 +25,11 @@ FILE="$MEM_DIR/mistakes.md"
 
 {
   echo "## $(date -u +%Y-%m-%dT%H:%M:%SZ) — $TOOL 거부됨"
-  echo "- input: \`$(printf '%s' "$CMD" | tr '\n' ' ')\`"
-  echo "- reason: $(printf '%s' "$REASON" | tr '\n' ' ')"
-  echo "- lesson: 같은 호출을 재시도하지 말 것. 사용자 승인 패턴이거나 권한 정책 위반."
+  echo "- 맥락: (Claude should fill — 어떤 작업 중이었는가)"
+  echo "- 한 일: \`$(printf '%s' "$CMD" | tr '\n' ' ')\`"
+  echo "- 왜 틀렸나: $(printf '%s' "$REASON" | tr '\n' ' ')"
+  echo "- 옳은 접근: 같은 호출을 재시도하지 말 것. 사용자 승인 패턴이거나 권한 정책 위반."
+  echo "- 태그: #permission #policy"
   echo
 } >> "$FILE"
 

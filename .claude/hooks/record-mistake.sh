@@ -22,17 +22,20 @@ mkdir -p "$MEM_DIR"
 FILE="$MEM_DIR/mistakes.md"
 
 [[ ! -f "$FILE" ]] && {
-  echo "# Mistakes Log"            >  "$FILE"
-  echo                              >> "$FILE"
-  echo "Auto-recorded failures. Read on every session start." >> "$FILE"
-  echo                              >> "$FILE"
+  echo "# 실수 로그"                                                   >  "$FILE"
+  echo                                                                   >> "$FILE"
+  echo "자동 기록된 실패와 사용자 교정. 모든 세션 시작 시 읽힙니다." >> "$FILE"
+  echo "**같은 실수를 두 번 하지 마세요.**"                            >> "$FILE"
+  echo                                                                   >> "$FILE"
 }
 
 {
   echo "## $(date -u +%Y-%m-%dT%H:%M:%SZ) — $TOOL failed"
-  echo "- input: \`$(printf '%s' "$CMD" | tr '\n' ' ')\`"
-  echo "- error: $(printf '%s' "$ERR" | tr '\n' ' ')"
-  echo "- lesson: (Claude should fill this in next turn)"
+  echo "- 맥락: (Claude should fill — 어떤 작업 중이었는가)"
+  echo "- 한 일: \`$(printf '%s' "$CMD" | tr '\n' ' ')\`"
+  echo "- 왜 틀렸나: $(printf '%s' "$ERR" | tr '\n' ' ')"
+  echo "- 옳은 접근: (Claude should fill — 다음엔 어떻게)"
+  echo "- 태그: (Claude should fill — #area #tool)"
   echo
 } >> "$FILE"
 

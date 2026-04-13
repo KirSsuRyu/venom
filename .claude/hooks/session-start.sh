@@ -21,8 +21,12 @@ emit_recent_sections() {
 
   # 코드 펜스(```) 바깥의 "## " 헤더만 진짜 항목으로 본다.
   # placeholder 형식 예시가 코드 펜스 안에 들어 있어 토큰을 잡아먹는 것을 방지.
+  # HTML 주석(<!-- ... -->) 안의 헤더도 무시한다.
   local count
   count=$(awk '
+    /^<!--/ { in_comment = 1 }
+    /-->/ { in_comment = 0; next }
+    in_comment { next }
     /^```/ { in_fence = !in_fence; next }
     !in_fence && /^## / { n++ }
     END { print n+0 }
@@ -37,8 +41,11 @@ emit_recent_sections() {
   fi
 
   echo "### $label"
-  # 마지막 N개 "## " 섹션 추출. 코드 펜스 안의 헤더는 무시.
+  # 마지막 N개 "## " 섹션 추출. 코드 펜스 및 HTML 주석 안의 헤더는 무시.
   awk -v max="$max_sections" '
+    /^<!--/ { in_comment = 1 }
+    /-->/ { in_comment = 0; next }
+    in_comment { next }
     /^```/ {
       in_fence = !in_fence
       if (n > 0) sections[idx] = sections[idx] $0 "\n"
@@ -57,11 +64,46 @@ emit_recent_sections() {
   echo
 }
 
+# lessons.md 전용 emitter: "- [#tag] ..." 불릿 항목 형식을 읽는다.
+# emit_recent_sections와 달리 ## 헤더가 없는 목록 형식에 맞게 파싱한다.
+emit_lessons() {
+  local file="$1"
+  [[ -f "$file" && -s "$file" ]] || return 0
+
+  # 실제 항목 수 (HTML 주석·코드 펜스 바깥의 "- " 줄)
+  local count
+  count=$(awk '
+    /^<!--/ { in_comment = 1 }
+    /-->/ { in_comment = 0; next }
+    in_comment { next }
+    /^```/ { in_fence = !in_fence; next }
+    !in_fence && /^- / { n++ }
+    END { print n+0 }
+  ' "$file")
+  [[ "$count" -gt 0 ]] || return 0
+
+  local lines
+  lines=$(wc -l < "$file" | tr -d ' ')
+  if [[ "$lines" -gt 500 ]]; then
+    echo "[venom] lessons.md is $lines lines — consider splitting (50-memory-protocol.md)" >&2
+  fi
+
+  echo "### Lessons learned"
+  awk '
+    /^<!--/ { in_comment = 1 }
+    /-->/ { in_comment = 0; next }
+    in_comment { next }
+    /^```/ { in_fence = !in_fence; next }
+    !in_fence && /^- / { print }
+  ' "$file"
+  echo
+}
+
 {
   echo "## Project memory loaded by harness"
   echo
   emit_recent_sections "$MEM/mistakes.md"  "Recent mistakes (do NOT repeat)" 10
-  emit_recent_sections "$MEM/lessons.md"   "Lessons learned"                  20
+  emit_lessons         "$MEM/lessons.md"
   emit_recent_sections "$MEM/decisions.md" "Architectural decisions"          10
   echo
 

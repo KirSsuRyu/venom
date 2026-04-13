@@ -3,6 +3,24 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.3] — 2026-04-13
+
+### Fixed
+- `session-start.sh` — `lessons.md`를 읽지 못하는 버그 수정. `emit_recent_sections()`는
+  `## ` 헤더 기준 섹션 파서라 `- [#tag]` 불릿 형식인 `lessons.md`에서 항목을 0개 추출했음.
+  전용 `emit_lessons()` 함수를 추가하여 불릿 항목을 올바르게 파싱.
+- `session-start.sh` — HTML 주석(`<!-- -->`) 안의 `## ` 헤더가 실제 섹션으로
+  카운트되던 버그 수정. 형식 예시 주석이 컨텍스트 토큰을 낭비하지 않도록 awk에 주석 감지 로직 추가.
+- `record-mistake.sh` — 자동 생성 항목에 태그 라인이 없어 `trigger-evolution.sh`의
+  반복 실수 감지가 작동하지 않던 문제 수정. 필드명을 `50-memory-protocol.md` 규약
+  (`맥락/한 일/왜 틀렸나/옳은 접근/태그`)에 맞게 통일. 파일 초기화 시 한글 헤더로 수정.
+- `record-permission-denied.sh` — 태그 라인 누락 수정, 필드명 규약 통일.
+- `record-stop-failure.sh` — 태그 라인 누락 수정, 필드명 규약 통일.
+
+### Changed
+- `memory/mistakes.md`, `memory/lessons.md`, `memory/decisions.md` — npm 패키지 배포용
+  초기 상태로 리셋. 개발 중 적재된 내용 제거, 형식 가이드/예시만 유지.
+
 ## [2.0.1] — 2026-04-11
 
 ### Fixed
