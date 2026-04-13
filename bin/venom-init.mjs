@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 // venom-init — Venom 하네스(.claude/, CLAUDE.md)를 임의 프로젝트에 설치/업데이트한다.
-// 설계 원칙: 의존성 0, 파괴적 호출 금지, 모든 충돌은 백업 후 덮어쓰기.
+// 설계 원칙: 의존성 0, 파괴적 호출 금지.
+//
+// [업그레이드 동작]
+// 파일을 두 종류로 구분하여 스마트 병합한다:
+//   - 하네스 소유: hooks/, rules/00-59, 기본 스킬 → 항상 갱신
+//   - 사용자 소유: rules/60+, memory/*.md, project-* 스킬 → 이미 있으면 보존
+// 덕분에 /venom으로 생성한 프로젝트 특화 규칙·메모리·스킬이 업그레이드로 사라지지 않는다.
 
 import { argv, cwd, exit, stderr, stdout } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import {
   existsSync,
   statSync,
@@ -21,10 +27,21 @@ import { tmpdir, homedir } from 'node:os';
 
 const VERSION = '0.1.0';
 const REPO_URL = 'https://github.com/KirSsuRyu/venom.git';
-// 설치 대상 항목. 추가/삭제 시 README와 테스트도 함께 갱신할 것.
+// 설치 대상 최상위 항목.
 const ITEMS = ['CLAUDE.md', '.claude'];
 // 사용자 로컬 파일 — 항상 보존하고 절대 덮어쓰지 않는다.
 const PRESERVE_PATHS = [join('.claude', 'settings.local.json')];
+
+// 하네스가 기본 제공하는 스킬 이름 목록.
+// 이 목록에 없는 스킬(project-* 등)은 /venom이 생성한 사용자 소유로 간주한다.
+const HARNESS_SKILLS = new Set([
+  'code-review',
+  'debug-loop',
+  'evolve',
+  'git-workflow',
+  'mistake-recorder',
+  'test-runner',
+]);
 
 const log = (msg = '') => stdout.write(msg + '\n');
 const err = (msg = '') => stderr.write(msg + '\n');
@@ -34,7 +51,7 @@ function printHelp() {
 사용법: venom-init [target-dir] [옵션]
 
 옵션:
-  --force          기존 파일을 백업 없이 덮어씁니다 (--no-backup과 함께 사용).
+  --force          사용자 소유 파일도 포함해 모든 파일을 덮어씁니다.
   --no-backup      충돌 시 백업하지 않습니다 (--force 없으면 중단).
   --from-git       동봉본 대신 ${REPO_URL} 에서 직접 가져옵니다.
   --ref <branch>   --from-git과 함께 사용 (기본 main).
@@ -43,9 +60,11 @@ function printHelp() {
   -h, --help       이 도움말을 출력합니다.
   -v, --version    버전을 출력합니다.
 
-기본 동작: 현재 디렉토리에 동봉된 Venom 하네스를 설치합니다.
-충돌이 있으면 .venom-backup/<timestamp>/ 아래에 백업한 뒤 덮어씁니다.
-.claude/settings.local.json 은 항상 보존됩니다.`);
+기본 동작 (업그레이드):
+  하네스 소유 파일(hooks, rules/00-59, 기본 스킬)만 갱신합니다.
+  사용자 소유 파일(rules/60+, memory/*.md, project-* 스킬)은 보존합니다.
+  충돌이 있으면 .venom-backup/<timestamp>/ 아래에 백업한 뒤 갱신합니다.
+  .claude/settings.local.json 은 항상 보존됩니다.`);
 }
 
 function parseArgs(rawArgv) {
@@ -240,33 +259,121 @@ function ensureExecutable(claudeDir) {
   walk(hooksDir);
 }
 
-function install(source, target, dryRun) {
-  // 보존 대상 파일을 메모리에 스냅샷.
+// 디렉토리를 재귀 순회하여 파일 상대 경로 목록을 반환한다.
+function walkFiles(dir) {
+  const result = [];
+  const recurse = (cur) => {
+    for (const entry of readdirSync(cur, { withFileTypes: true })) {
+      const abs = join(cur, entry.name);
+      if (entry.isDirectory()) recurse(abs);
+      else if (entry.isFile()) result.push(relative(dir, abs));
+    }
+  };
+  recurse(dir);
+  return result;
+}
+
+// 파일 경로가 하네스 소유(업그레이드 시 항상 덮어씀)인지 판단한다.
+// 사용자 소유(프로젝트 특화 또는 누적 데이터)이면 false → 타깃에 존재하면 건너뜀.
+//
+// 분류 기준:
+//   하네스 소유: CLAUDE.md, settings.json, hooks/, commands/, rules/00-59, 기본 스킬 6개, memory/README.md
+//   사용자 소유: rules/60+(/venom 생성), memory/*.md(누적 데이터), project-* 스킬
+function isHarnessOwned(rel) {
+  const p = rel.replace(/\\/g, '/');
+
+  if (p === 'CLAUDE.md') return true;
+  if (!p.startsWith('.claude/')) return true;
+
+  if (p === '.claude/settings.json') return true;
+  if (p === '.claude/settings.local.json') return false; // 항상 PRESERVE_PATHS로 처리
+  if (p === '.claude/README.md') return true;
+  if (p === '.claude/.npmignore') return true;
+
+  // hooks/, commands/ 전체 → 하네스 소유
+  if (p.startsWith('.claude/hooks/')) return true;
+  if (p.startsWith('.claude/commands/')) return true;
+
+  // rules/ → 00-59는 하네스 코어, 60+는 /venom이 생성하는 프로젝트 특화
+  if (p.startsWith('.claude/rules/')) {
+    const name = p.split('/').pop() ?? '';
+    const num = parseInt(name, 10);
+    if (!isNaN(num)) return num < 60;
+    return true; // 번호 없는 rules 파일은 하네스 소유
+  }
+
+  // skills/ → HARNESS_SKILLS에 있는 것만 하네스 소유
+  if (p.startsWith('.claude/skills/')) {
+    const skillName = p.split('/')[2] ?? '';
+    return HARNESS_SKILLS.has(skillName);
+  }
+
+  // memory/ → README.md만 하네스 소유, 나머지는 사용자 누적 데이터
+  if (p.startsWith('.claude/memory/')) {
+    return p === '.claude/memory/README.md';
+  }
+
+  return true;
+}
+
+// 스마트 병합 설치.
+// 신규 설치: 모든 파일 복사.
+// 업그레이드: 하네스 소유 파일만 갱신, 사용자 소유 파일은 보존.
+// --force: 사용자 소유 파일도 모두 덮어씀.
+function install(source, target, dryRun, force) {
+  // 보존 대상 파일을 메모리에 스냅샷 (settings.local.json 등)
   const preserved = new Map();
   for (const rel of PRESERVE_PATHS) {
     const p = join(target, rel);
     if (existsSync(p)) preserved.set(rel, readFileSync(p));
   }
 
-  for (const name of ITEMS) {
-    const src = join(source, name);
-    const dst = join(target, name);
-    if (dryRun) {
-      log(`[dry-run] 복사: ${name}`);
-      continue;
+  const isUpgrade = ITEMS.some((name) => existsSync(join(target, name)));
+  const stats = { updated: 0, added: 0, skipped: 0 };
+
+  for (const item of ITEMS) {
+    const srcItem = join(source, item);
+    if (!existsSync(srcItem)) continue;
+
+    if (statSync(srcItem).isFile()) {
+      // 단일 파일 (CLAUDE.md 등)
+      const dstItem = join(target, item);
+      const owned = isHarnessOwned(item);
+      const exists = existsSync(dstItem);
+      const shouldCopy = !exists || owned || force;
+
+      if (dryRun) {
+        log(`[dry-run] ${!exists ? 'add' : shouldCopy ? 'update' : 'skip'}: ${item}`);
+      } else if (shouldCopy) {
+        cpSync(srcItem, dstItem);
+      }
+      if (!exists) stats.added++;
+      else if (shouldCopy) stats.updated++;
+      else stats.skipped++;
+    } else {
+      // 디렉토리 (.claude/) → 파일 단위 처리
+      for (const relFile of walkFiles(srcItem)) {
+        const relPath = join(item, relFile).replace(/\\/g, '/');
+        const srcFile = join(srcItem, relFile);
+        const dstFile = join(target, relPath);
+        const owned = isHarnessOwned(relPath);
+        const exists = existsSync(dstFile);
+        const shouldCopy = !exists || owned || force;
+
+        if (dryRun) {
+          log(`[dry-run] ${!exists ? 'add' : shouldCopy ? 'update' : 'skip'}: ${relPath}`);
+        } else if (shouldCopy) {
+          mkdirSync(dirname(dstFile), { recursive: true });
+          cpSync(srcFile, dstFile);
+        }
+        if (!exists) stats.added++;
+        else if (shouldCopy) stats.updated++;
+        else stats.skipped++;
+      }
     }
-    if (existsSync(dst)) rmSync(dst, { recursive: true, force: true });
-    cpSync(src, dst, { recursive: true, dereference: false });
   }
 
-  // 소스에서 흘러 들어왔을 수 있는 보존 파일을 항상 제거.
-  for (const rel of PRESERVE_PATHS) {
-    const p = join(target, rel);
-    if (dryRun) continue;
-    if (existsSync(p)) rmSync(p, { force: true });
-  }
-
-  // 타깃에 원래 있었다면 그대로 복원 (덮어쓰지 않는다).
+  // 보존 파일 복원 (소스에서 흘러 들어왔을 수 있으므로 항상 원본으로 덮어씀)
   for (const [rel, buf] of preserved) {
     const p = join(target, rel);
     if (dryRun) {
@@ -278,6 +385,8 @@ function install(source, target, dryRun) {
   }
 
   if (!dryRun) ensureExecutable(join(target, '.claude'));
+
+  return { ...stats, isUpgrade };
 }
 
 function main() {
@@ -323,12 +432,23 @@ function main() {
       log('충돌 없음 — 깨끗한 설치');
     }
 
-    install(source, opts.target, opts.dryRun);
+    const result = install(source, opts.target, opts.dryRun, opts.force);
     const giResult = ensureGitignore(opts.target, opts.dryRun);
     log(`.gitignore: ${giResult}`);
+    log('');
+
+    if (result.isUpgrade) {
+      log(`업그레이드 완료: ${result.updated}개 갱신, ${result.added}개 신규, ${result.skipped}개 보존`);
+      if (result.skipped > 0) {
+        log('  보존된 파일: 프로젝트 특화 규칙(60+), 메모리 데이터, 커스텀 스킬');
+        log('  모두 덮어쓰려면: --force 플래그 사용');
+      }
+    } else {
+      log(`설치 완료: ${result.added}개 파일`);
+    }
 
     log('');
-    log('완료. 다음 단계:');
+    log('다음 단계:');
     log('  1) Claude Code 세션을 재시작하세요.');
     log('  2) 새 세션에서 /venom 을 실행하세요.');
   } finally {

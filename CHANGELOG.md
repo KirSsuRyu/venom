@@ -3,6 +3,16 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.4] — 2026-04-13
+
+### Changed
+- `venom-init.mjs` — 업그레이드 시 전체 덮어쓰기 → 파일 소유권 기반 스마트 병합으로 교체.
+  - **하네스 소유** (항상 갱신): `hooks/`, `rules/00-59`, 기본 스킬 6개, `settings.json`, `CLAUDE.md` 등
+  - **사용자 소유** (이미 있으면 보존): `rules/60+`(/venom 생성), `memory/*.md`(누적 데이터), `project-*` 스킬
+  - `--force` 플래그로 사용자 소유 파일까지 강제 덮어쓰기 가능
+  - 업그레이드 결과 요약 출력: "N개 갱신, M개 신규, K개 보존"
+  - `isHarnessOwned()` 함수로 파일 소유권 판단 로직을 단일 지점에 집중
+
 ## [2.0.3] — 2026-04-13
 
 ### Fixed
