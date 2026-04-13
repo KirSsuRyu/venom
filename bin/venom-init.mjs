@@ -24,8 +24,10 @@ import {
 } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir, homedir } from 'node:os';
+import { createRequire } from 'node:module';
 
-const VERSION = '0.1.0';
+const _require = createRequire(import.meta.url);
+const VERSION = _require('../package.json').version;
 const REPO_URL = 'https://github.com/KirSsuRyu/venom.git';
 // 설치 대상 최상위 항목.
 const ITEMS = ['CLAUDE.md', '.claude'];
