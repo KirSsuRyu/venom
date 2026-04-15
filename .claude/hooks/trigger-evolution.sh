@@ -11,11 +11,19 @@
 
 set -euo pipefail
 
+# shellcheck source=lib/stop-guard.sh
+source "$(dirname "$0")/lib/stop-guard.sh"
+
 INPUT="$(cat)"
 STOP_HOOK_ACTIVE="$(printf '%s' "$INPUT" | jq -r '.stop_hook_active // false')"
 
 # 무한 루프 방지
 if [[ "$STOP_HOOK_ACTIVE" == "true" ]]; then
+  exit 0
+fi
+
+# Claude가 유저에게 질문을 던진 턴이면 진화 권고를 스킵한다.
+if is_question_stop "$INPUT"; then
   exit 0
 fi
 

@@ -15,11 +15,19 @@
 
 set -euo pipefail
 
+# shellcheck source=lib/stop-guard.sh
+source "$(dirname "$0")/lib/stop-guard.sh"
+
 INPUT="$(cat)"
 STOP_HOOK_ACTIVE="$(printf '%s' "$INPUT" | jq -r '.stop_hook_active // false')"
 
 # 무한 루프 방지: 첫 번째 시도에만 개입한다.
 if [[ "$STOP_HOOK_ACTIVE" == "true" ]]; then
+  exit 0
+fi
+
+# Claude가 유저에게 질문을 던진 턴이면 검증을 스킵한다.
+if is_question_stop "$INPUT"; then
   exit 0
 fi
 
