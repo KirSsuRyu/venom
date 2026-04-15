@@ -53,21 +53,27 @@ d) 변경 이유를 lessons.md 또는 decisions.md에 기록한다
 ### 3. 새 규칙 생성
 
 ```
-a) 적절한 번호를 정한다:
-   - 60-69: 프로젝트 특화
-   - 70-79: 추가 부록
-b) 규칙 파일을 작성한다:
-   - 제목: # NN — <규칙 영역>
+a) 배치 위치 결정:
+   - 기존 규칙 파일 보강 가능 → 기존 파일에 추가 (최우선)
+   - 새 파일이 필요 → .claude/rules/evolved/<이름>.md
+     (기존 00-55 번호 prefix 파일은 flat 유지, 진화 생성분은 evolved/)
+
+b) 규칙 파일 작성:
+   - 제목: # <규칙 영역>
    - 섹션별로 *무엇을* *왜* 해야 하는지 명시
    - 예제 포함 (좋은 예 vs 나쁜 예)
+
 c) CLAUDE.md의 부록 테이블에 등재한다
+
 d) decisions.md에 ADR로 남긴다
 ```
 
 ### 4. 새 스킬 생성
 
 ```
-a) .claude/skills/<이름>/SKILL.md 생성
+a) .claude/skills/evolved/<이름>/SKILL.md 생성
+   (기존 기반 스킬은 skills/<name>/ 유지, 진화 생성분은 evolved/ 아래)
+
 b) 형식:
    ---
    name: <kebab-case-이름>
@@ -79,24 +85,34 @@ b) 형식:
    1. ...
    ## 안티 패턴
    - ...
+
 c) 실제 상황에 적용해본다 (머릿속 시뮬레이션이라도)
 ```
 
 ### 5. 새 hook 생성
 
 ```
-a) .claude/hooks/<이름>.sh 작성
+a) .claude/hooks/evolved/<이름>.sh 작성
    - #!/usr/bin/env bash
    - set -euo pipefail
    - stdin에서 JSON 읽기
    - 차단 시 JSON 출력, 통과 시 exit 0
+   (기존 기반 훅 flat 파일은 그대로 유지, 진화 생성분은 evolved/ 아래)
+
 b) bash -n 문법 검증
+
 c) chmod +x 부여
+
 d) settings.json의 적절한 이벤트에 등록
+   예: "$CLAUDE_PROJECT_DIR"/.claude/hooks/evolved/<이름>.sh
+
 e) JSON 유효성 검증:
    python3 -c "import json; json.load(open('.claude/settings.json'))"
+
 f) 대표 입력으로 스모크 테스트:
-   echo '{"tool_name":"Bash","tool_input":{"command":"<테스트명령>"}}' | bash .claude/hooks/<이름>.sh
+   echo '{"tool_name":"Bash","tool_input":{"command":"<테스트명령>"}}' \
+     | bash .claude/hooks/evolved/<이름>.sh
+
 g) decisions.md에 ADR로 남김
 ```
 
@@ -110,6 +126,29 @@ a) 카테고리 판단:
 b) 해당 파일 형식에 맞춰 추가
 c) 태그 포함
 ```
+
+### 6.5 승급 후 원본 삭제 (진화가 규칙/스킬/hook 생성을 포함할 때 필수)
+
+```
+a) decisions.md에 ADR 추가
+   형식:
+   ## ADR-NNNN: <제목>
+   - 날짜: YYYY-MM-DD
+   - 상태: 채택
+   - 기원: mistakes.md #태그 (N회) 또는 lessons.md #태그
+   - 맥락: <어떤 문제에서 비롯됐나>
+   - 결정: <어떤 규칙/스킬/hook을 만들었나>
+   - 결과: <이 진화가 막는 것>
+
+b) mistakes.md 또는 lessons.md에서 승급된 항목 삭제
+   - 동일 태그 항목 전체를 승급했으면 해당 항목 모두 삭제
+   - 일부만 승급했으면 승급된 항목만 삭제
+
+c) 삭제 확인: 파일에 해당 태그 항목이 남아있지 않은지 확인
+```
+
+> **왜**: mistakes.md/lessons.md는 "진화 대기열"이다. 승급된 항목이 남아있으면
+> 세션마다 "이미 해결된 문제"에 컨텍스트를 낭비한다.
 
 ### 7. 보고
 

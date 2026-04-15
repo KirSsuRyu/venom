@@ -7,10 +7,13 @@
 ## ADR-NNNN: <제목>
 - 날짜: YYYY-MM-DD
 - 상태: 제안 | 채택 | ADR-MMMM으로 대체됨
+- 기원: mistakes.md #태그 (N회) | lessons.md #태그 | 없음 (직접 결정)
 - 맥락: <작용하는 힘들>
 - 결정: <무엇을 골랐나>
 - 결과: <장점과 단점>
 ```
+
+> `기원`이 있는 ADR은 해당 mistakes.md/lessons.md 항목이 이미 삭제된 것이다.
 
 ---
 

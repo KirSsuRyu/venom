@@ -3,6 +3,24 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.6] — 2026-04-15
+
+### Changed
+- **진화 메모리 모델 개선** — `mistakes.md`/`lessons.md`를 "진화 대기열(임시)"로,
+  `decisions.md`를 "진화 영구 이력"으로 역할을 명확히 분리.
+  진화 완료 시 원본 항목을 `decisions.md`에 흡수 후 삭제하는 "승급 후 소멸" 모델 도입.
+  세션마다 "이미 해결된 실수"에 컨텍스트가 낭비되는 문제 해소.
+- **`decisions.md` ADR 형식에 `기원` 필드 추가** — 어떤 실수/교훈에서 규칙이 비롯됐는지
+  추적 가능. 삭제된 원본 항목의 이력을 ADR에서 확인할 수 있음.
+- **진화 생성 파일 배치 규칙 신설** — 자기 진화로 새로 생성되는 규칙·스킬·훅은
+  각 폴더의 `evolved/` 서브폴더에 배치. 기존 기반 파일과 명확히 분리.
+  ```
+  rules/evolved/<이름>.md
+  hooks/evolved/<이름>.sh
+  skills/evolved/<이름>/SKILL.md
+  ```
+- `50-memory-protocol.md`, `55-self-evolution.md`, `evolve/SKILL.md` — 위 변경 반영.
+
 ## [2.0.4] — 2026-04-13
 
 ### Changed

@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Works with Claude Code](https://img.shields.io/badge/works%20with-Claude%20Code-8A4FFF)](https://code.claude.com)
+[![Changelog](https://img.shields.io/badge/changelog-📋-blue.svg)](CHANGELOG.md)
 [![English](https://img.shields.io/badge/lang-English-blue.svg)](README.en.md)
 [![简体中文](https://img.shields.io/badge/lang-简体中文-green.svg)](README.zh-CN.md)
 [![繁體中文](https://img.shields.io/badge/lang-繁體中文-orange.svg)](README.zh-TW.md)
