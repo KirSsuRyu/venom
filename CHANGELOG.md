@@ -3,6 +3,15 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.7] — 2026-04-15
+
+### Fixed
+- **Stop 훅 질문 턴 스킵 개선** — `AskUserQuestion` 도구 감지만으로는 Claude가 평문으로
+  던지는 질문을 감지하지 못하는 문제 수정. `lib/stop-guard.sh`의 `is_question_stop()`을
+  Python3으로 transcript JSONL을 파싱해 마지막 어시스턴트 텍스트를 추출하고,
+  `?`·한국어 질문형 어미·승인 대기 문구를 정규식으로 감지하는 방식으로 교체.
+  `verify-before-stop.sh`, `trigger-evolution.sh` 양쪽에 동일하게 적용.
+
 ## [2.0.6] — 2026-04-15
 
 ### Changed

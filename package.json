@@ -1,6 +1,6 @@
 {
   "name": "@cgyou/venom-init",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Venom 하네스(.claude/, CLAUDE.md)를 임의의 프로젝트에 한 줄로 설치/업데이트하는 CLI",
   "type": "module",
   "bin": {
