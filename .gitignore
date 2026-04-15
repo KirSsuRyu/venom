@@ -13,4 +13,5 @@
 __pycache__/
 *.pyc
 .venv/
+bin/
 .pytest_cache/
