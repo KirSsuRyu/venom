@@ -12,6 +12,9 @@
 # 감지 방식: Python3으로 transcript JSONL을 파싱하여 마지막 어시스턴트
 # 텍스트를 추출하고, 질문/승인 대기 패턴을 정규식으로 확인한다.
 # AskUserQuestion 도구 의존 없이 평문 질문도 감지한다.
+#
+# bash 3.2 호환: $() 안 heredoc에 )가 있으면 명령 치환이 조기 종료되는 버그 회피를 위해
+# Python 스크립트를 temp 파일로 분리한다.
 
 is_question_stop() {
   local input="$1"
@@ -20,8 +23,13 @@ is_question_stop() {
   transcript_path="$(printf '%s' "$input" | jq -r '.transcript_path // ""')"
   [[ -z "$transcript_path" || ! -f "$transcript_path" ]] && return 1
 
-  local last_text
-  last_text=$(python3 - "$transcript_path" <<PYEOF
+  # Python 스크립트를 temp 파일에 기록 ($() 안 heredoc 회피)
+  local _tmpscript
+  _tmpscript=$(mktemp /tmp/venom-stopguard-XXXXXX.py)
+  # shellcheck disable=SC2064
+  trap "rm -f '$_tmpscript'" RETURN
+
+  cat > "$_tmpscript" << 'PYEOF'
 import sys, json
 
 path = sys.argv[1]
@@ -52,7 +60,9 @@ except Exception:
     pass
 print(last_text[-500:] if len(last_text) > 500 else last_text)
 PYEOF
-  )
+
+  local last_text
+  last_text=$(python3 "$_tmpscript" "$transcript_path") || return 1
 
   # 질문/승인 대기 패턴:
   #   물음표, 한국어 질문형 어미, 사용자 확인을 기다리는 문구
