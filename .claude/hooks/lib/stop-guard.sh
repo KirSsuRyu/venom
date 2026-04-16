@@ -21,7 +21,7 @@ is_question_stop() {
   [[ -z "$transcript_path" || ! -f "$transcript_path" ]] && return 1
 
   local last_text
-  last_text=$(python3 - "$transcript_path" <<'PYEOF'
+  last_text=$(python3 - "$transcript_path" <<PYEOF
 import sys, json
 
 path = sys.argv[1]
