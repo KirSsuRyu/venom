@@ -6,6 +6,27 @@
 ## [2.0.8] — 2026-04-16
 
 ### Changed
+- **`/venom` 커맨드에 스킬 체인 추천 섹션 추가** — 4.10단계(스킬 체인 도출)
+  신설: 인증·결제·개인정보 코드 감지 시 보안 감사 모드 명시, 복잡 로직 시
+  debug-loop 전면 배치 등 프로젝트 특성 → 스킬 조합 판단 기준 테이블.
+  7단계 보고 형식에 `🔗 권장 스킬 체인` 블록 추가: 일반 개발·버그 수정·
+  보안 민감·주간 회고 4가지 흐름 템플릿. gstack의 스프린트 파이프라인
+  (Think→Plan→Build→Review→Test→Ship→Reflect) 개념을 /venom 흡수 결과물에 통합.
+- **`git-workflow` 스킬에 문서 동기화 체크 추가** — 커밋/PR 전 diff와 문서
+  불일치를 점검하는 섹션 신설. README·CHANGELOG·CONTRIBUTING·ARCHITECTURE·
+  `.env.example` 등 대상별 확인 항목 매핑 테이블, 건너뛸 수 있는 조건(chore/test/
+  refactor 타입), PR 본문에 `## Docs` 체크박스 추가. gstack `/document-release`
+  개념을 Venom의 git 워크플로우에 통합.
+- **`inject-context.sh`에 스킬 힌트 주입 추가** — UserPromptSubmit 시 프롬프트
+  키워드를 감지해 적절한 스킬을 1줄로 추천. 디버깅(debug-loop), 보안 감사
+  (code-review 보안 모드), 코드 리뷰, 회고(retro), git 작업, 테스트 6가지 단계를
+  구분. 키워드 없는 경우 추가 토큰 0. python3 없거나 JSON 파싱 실패 시 조용히
+  스킵. gstack의 "단계 감지 → 스킬 제안" 개념을 Venom의 토큰 절감 철학에 맞게 통합.
+- **`code-review` 스킬에 OWASP 보안 감사 패스 추가** — "보안 감사해줘" / 인증·결제·
+  사용자 데이터 코드 감지 시 자동 실행되는 `🔐 보안 감사 패스` 섹션 신설.
+  OWASP Top 10(A01~A10) 체크리스트, 신뢰도 8/10 이상 게이트, 구체적 공격 시나리오
+  필수 요건, 7종 false positive 자동 제외 규칙 포함. gstack `/cso`의 zero-noise
+  접근법을 Venom 스타일로 통합. 트리거 description에 보안 감사 키워드 추가.
 - **`debug-loop` 스킬에 Iron Law 흡수** — "조사 없이 수정하지 않는다 / 수정이 3번
   연속 실패하면 멈추고 보고한다"는 절대 원칙을 스킬 최상단에 명시. 수정 시도
   카운터 개념, 3회 실패 시 보고 형식, 카운터 리셋 금지 안티 패턴 추가.
