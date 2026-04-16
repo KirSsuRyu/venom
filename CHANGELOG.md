@@ -3,6 +3,18 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.11] — 2026-04-16
+
+### Fixed
+- **bash 3.2 `heredoc-in-$()` 버그 대응** — macOS 기본 bash(3.2)에서 `$()`
+  안 heredoc 내용에 `)`가 있으면 명령 치환이 조기 종료되는 버그 수정.
+  `scan-secrets.sh`와 `lib/stop-guard.sh`의 Python 스크립트를 `mktemp` 임시
+  파일로 분리하고 `trap`으로 자동 정리. 이전 단순 `<<'PYEOF'` → `<<PYEOF`
+  변경은 `'` 문제만 해결했고 `)` 문제는 미해결 상태였음.
+- **hook 실행 권한 누락 수정** — git clone 후 `trigger-evolution.sh`,
+  `lib/dangerous-patterns.sh`, `lib/stop-guard.sh`, `scan-secrets.sh`에
+  실행 비트(`+x`) 누락으로 Permission denied 발생하던 문제 수정.
+
 ## [2.0.9] — 2026-04-16
 
 ### Added
