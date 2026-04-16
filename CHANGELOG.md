@@ -3,6 +3,33 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.9] — 2026-04-16
+
+### Added
+- **`scan-secrets.sh` 훅 신규** — UserPromptSubmit 이벤트에서 사용자 메시지의
+  시크릿 패턴을 스캔. OpenAI/Anthropic(`sk-`), GitHub PAT(`ghp_`/`ghs_`), AWS
+  Access Key(`AKIA`), Slack 토큰(`xox*`), Bearer 토큰, PEM 개인키, DB 연결 문자열
+  등 13개 패턴 탐지. 감지 시 Claude 컨텍스트에 `⛔ VENOM SECURITY ALERT` 경고
+  주입 → 자격증명 사용 거부 및 rotate 안내. python3 없거나 감지 없는 경우 토큰
+  비용 0. ECC의 PreSubmitPrompt 시크릿 스캔 개념을 Venom에 통합.
+  `settings.json` UserPromptSubmit 배열에 등록.
+- **`compact` 스킬 신규** — 전략적 컴팩션 타이밍 가이드. "지금 압축해야 하는
+  신호 6가지 / 하면 안 되는 신호 4가지" 판단 기준, 압축 전 5항목 체크리스트,
+  압축 후 재시작 팁 포함. Venom의 토큰 절감 핵심 목표와 연결. ECC의
+  전략적 컴팩션 가이드 개념 통합.
+
+### Changed
+- **`block-dangerous.sh`에 `VENOM_HOOK_PROFILE` 엄격도 프로파일 추가** —
+  `permissive`(경고만·실행 허용) / `standard`(현재 기본·차단) / `strict`
+  (추가 패턴 차단: force-with-lease, chmod -R, chown -R, truncate, /etc/ 쓰기)
+  3단계 프로파일 지원. `settings.json` env에 `VENOM_HOOK_PROFILE=standard` 기본값
+  추가. ECC의 `ECC_HOOK_PROFILE` 개념을 Venom 네이밍으로 통합.
+- **`verify-before-stop.sh` 3단계 검증으로 강화** — 기존 HARD 차단(1단계)에
+  SOFT 힌트 2단계 추가. [2단계] 최근 60분 내 mistakes.md 갱신 시 lessons.md
+  기록 권고 / [3단계] 최근 3커밋에 feat: 타입 있으면 문서 동기화 확인 권고.
+  차단 메시지에 "[1/3 코드 검증]" 레이블 추가로 단계 구조 명확화. ECC의
+  다단계 verification-loop 패턴 통합.
+
 ## [2.0.8] — 2026-04-16
 
 ### Changed

@@ -69,6 +69,14 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/inject-context.sh"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scan-secrets.sh"
+          }
+        ]
       }
     ],
 
@@ -160,6 +168,7 @@
 
   "env": {
     "HARNESS_VERSION": "1.0.0",
-    "HARNESS_MEMORY_DIR": ".claude/memory"
+    "HARNESS_MEMORY_DIR": ".claude/memory",
+    "VENOM_HOOK_PROFILE": "standard"
   }
 }

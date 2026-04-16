@@ -38,6 +38,7 @@ const PRESERVE_PATHS = [join('.claude', 'settings.local.json')];
 // 이 목록에 없는 스킬(project-* 등)은 /venom이 생성한 사용자 소유로 간주한다.
 const HARNESS_SKILLS = new Set([
   'code-review',
+  'compact',
   'debug-loop',
   'evolve',
   'git-workflow',
