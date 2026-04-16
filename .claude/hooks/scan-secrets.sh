@@ -21,7 +21,7 @@ VENOM_PROMPT_JSON="$(cat)"
 export VENOM_PROMPT_JSON
 
 # 탐지 결과를 python3으로 처리 (JSON 파싱 + 패턴 매칭)
-result=$(python3 - <<'PYEOF'
+result=$(python3 - <<PYEOF
 import sys, json, re, os
 
 raw = os.environ.get("VENOM_PROMPT_JSON", "")
