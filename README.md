@@ -111,7 +111,7 @@ your-project/
     ├── commands/
     │   └── venom.md             # /venom 슬래시 명령
     ├── rules/                   # 자동 로드되는 7개 도메인 규칙 (00-55)
-    ├── skills/                  # 6개 범용 스킬 (review/debug/test/git/memory/evolve)
+    ├── skills/                  # 7개 범용 스킬 (review/debug/test/git/memory/evolve/retro)
     ├── hooks/                   # 10개 결정적 강제 스크립트
     └── memory/                  # 프로젝트 영구 메모리 (mistakes/lessons/decisions)
 ```

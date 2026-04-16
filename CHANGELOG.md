@@ -3,6 +3,15 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.0.8] — 2026-04-16
+
+### Added
+- **`retro` 스킬 신규 추가** — 주간/세션 단위 회고 스킬. git 통계(커밋 수, 추가/삭제
+  라인, 변경 파일, 커밋 타입 분포)와 `.claude/memory/` 항목을 결합해 성과·배운 것·
+  막힌 곳을 구조화된 리포트로 출력합니다. 진화 신호(반복 태그, fix 비율 이상, 문서
+  커밋 부재 등)를 자동 감지해 `evolve` 스킬 실행을 권고합니다. gstack의 `/retro`
+  컨셉을 Venom의 메모리·진화 시스템에 맞게 통합.
+
 ## [2.0.7] — 2026-04-15
 
 ### Fixed
