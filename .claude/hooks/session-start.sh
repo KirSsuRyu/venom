@@ -135,6 +135,9 @@ emit_lessons() {
   fi
 
   echo "## End of project memory"
-} 2>/dev/null || true
+} || {
+  # 실패 시 stderr로 한 줄 경고 (00-core.md 규칙 7: 조용한 실패 금지)
+  echo "[venom] session-start: memory injection partially failed (exit=$?) — check .claude/memory/" >&2
+}
 
 exit 0

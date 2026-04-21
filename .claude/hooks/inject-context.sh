@@ -43,7 +43,7 @@ if [ -n "$prompt_text" ]; then
   elif echo "$lower" | grep -qE '보안|취약|security|owasp|해킹|exploit|injection|xss|sqli|csrf|인증.*검토|auth.*review'; then
     hint="code-review (보안 감사 모드)"
   # 코드 리뷰 단계 — code-review
-  elif echo "$lower" | grep -qE '리뷰|검토|pr.*봐|코드.*봐|diff|review|pull.request|머지 전|merge.*전|변경사항.*봐'; then
+  elif echo "$lower" | grep -qE '리뷰|검토|pr.*봐|코드.*봐|git diff|diff.*봐|review|pull.request|머지 전|merge.*전|변경사항.*봐'; then
     hint="code-review"
   # 회고 단계 — retro
   elif echo "$lower" | grep -qE '회고|retro|이번 주.*정리|뭘 했|무엇을 했|한 주|retrospective|지난.*정리'; then

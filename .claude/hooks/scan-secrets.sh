@@ -41,7 +41,7 @@ if not prompt:
 
 # 시크릿 패턴 목록 (패턴, 레이블)
 PATTERNS = [
-    (r'sk-[A-Za-z0-9_\-]{20,}',                        'OpenAI / Anthropic API 키'),
+    (r'(?<![A-Za-z0-9_-])sk-(?:ant-|proj-)?[A-Za-z0-9_\-]{32,}', 'OpenAI / Anthropic API 키'),
     (r'ghp_[A-Za-z0-9]{36,}',                           'GitHub Personal Access Token'),
     (r'github_pat_[A-Za-z0-9_]{82}',                    'GitHub Fine-grained PAT'),
     (r'ghs_[A-Za-z0-9]{36,}',                           'GitHub Actions 시크릿'),

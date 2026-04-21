@@ -1,10 +1,13 @@
 # Venom 흡수 백업
-.claude/.venom-backup/
+.venom-backup/
 
 # IDE
 .idea/
 .vscode/
 *.swp
+
+# Claude 로컬 권한 토글 — 개인 파일이므로 저장소에 포함하지 않는다
+.claude/settings.local.json
 
 # OS
 .DS_Store

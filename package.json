@@ -1,6 +1,6 @@
 {
   "name": "@cgyou/venom-init",
-  "version": "2.0.12",
+  "version": "2.1.0",
   "description": "Venom 하네스(.claude/, CLAUDE.md)를 임의의 프로젝트에 한 줄로 설치/업데이트하는 CLI",
   "type": "module",
   "bin": {
@@ -20,7 +20,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test tests/cli/*.test.mjs"
+    "test": "bash -c 'set -e; for f in .claude/hooks/*.sh .claude/hooks/lib/*.sh; do bash -n \"$f\"; done && python3 -c \"import json;json.load(open(\\\".claude/settings.json\\\"))\" && echo OK'"
   },
   "keywords": [
     "claude-code",

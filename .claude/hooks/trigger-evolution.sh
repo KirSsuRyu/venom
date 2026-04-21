@@ -53,8 +53,10 @@ REPEATED_TAGS=$(awk '
   }
 ' "$MISTAKES")
 
-# 오늘 세션에서 새로 추가된 실수가 있는지 확인 (lesson 미기입 항목)
-UNFILLED=$(grep -c "lesson:.*Claude should fill\|lesson:.*다음 턴에 채워야\|lesson:.*(Claude" "$MISTAKES" 2>/dev/null || echo 0)
+# 오늘 세션에서 새로 추가된 실수가 있는지 확인 (미기입 항목)
+# record-mistake.sh는 "- 맥락:/한 일:/왜 틀렸나:/옳은 접근:/태그:" 필드에 Claude should fill 플레이스홀더를 남긴다.
+# 필드명이 한국어이므로 lesson:을 찾는 기존 패턴은 영원히 0을 반환했다.
+UNFILLED=$(grep -c "(Claude should fill" "$MISTAKES" 2>/dev/null || echo 0)
 
 # 진화 기회가 있을 때만 출력
 NEEDS_EVOLUTION=false

@@ -12,7 +12,7 @@ TOOL="$(printf '%s' "$INPUT"   | jq -r '.tool_name // "unknown"')"
 REASON="$(printf '%s' "$INPUT" | jq -r '.reason    // "(no reason)"' | head -c 300)"
 CMD="$(printf '%s' "$INPUT"    | jq -r '.tool_input.command // .tool_input.file_path // .tool_input // ""' | head -c 300)"
 
-MEM_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/memory"
+MEM_DIR="${CLAUDE_PROJECT_DIR:-.}/${HARNESS_MEMORY_DIR:-.claude/memory}"
 mkdir -p "$MEM_DIR"
 FILE="$MEM_DIR/mistakes.md"
 

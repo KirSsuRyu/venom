@@ -17,7 +17,7 @@ if [[ "$INTERRUPT" == "true" ]]; then
   exit 0
 fi
 
-MEM_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/memory"
+MEM_DIR="${CLAUDE_PROJECT_DIR:-.}/${HARNESS_MEMORY_DIR:-.claude/memory}"
 mkdir -p "$MEM_DIR"
 FILE="$MEM_DIR/mistakes.md"
 

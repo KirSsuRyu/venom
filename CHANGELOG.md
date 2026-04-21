@@ -3,6 +3,66 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.1.0] — 2026-04-21
+
+전면 점검 세션 (ADR-0001). 보안/아키텍처/효율성/hook 안정성 4축에서 발견한
+Critical 3, High 3, Medium 4, Low 4 — 합계 13개 결함 일괄 수정.
+
+### Security
+- **비밀 파일 읽기 차단 신규 (C2)** — `block-dangerous`에서
+  `cat/head/tail/less/more/bat/strings/xxd/od` 류가 `.env`, `id_rsa`,
+  `id_ed25519`, `.aws/credentials`, `.ssh/id_*`, `*.pem` 파일을 읽는 행동을
+  Bash 경로에서 차단 (20-security 규칙과 정합). 6개 패턴 추가.
+- **`scan-secrets.sh` `sk-` 패턴 엄격화 (L4)** — 기존 패턴이 `sk-learn` 같은
+  무해 문자열까지 매치하던 false positive 수정.
+  `(?<![A-Za-z0-9_-])sk-(?:ant-|proj-)?[A-Za-z0-9_\-]{32,}` 형태로 강화.
+
+### Fixed
+- **`git push --force-with-lease` 오차단 해소 (C1)** —
+  `block-dangerous`의 `.*--force` ERE가 `--force-with-lease`까지
+  잘못 차단하던 버그. `--force([[:space:]]|$)`로 엄격화.
+- **`trigger-evolution.sh` UNFILLED 감지 복구 (C3)** — 실제 파일에 존재하지
+  않는 `lesson:` 접두를 찾아 진화 알림이 영영 울리지 않던 결함. 패턴을
+  `(Claude should fill`로 교정하여 진화 루프가 실제 동작.
+- **`compact-guide` 업그레이드 경로 수정 (H1)** — `venom-init.mjs`의
+  `HARNESS_SKILLS` 집합에 `compact` 오타로 실제 `compact-guide`가
+  "사용자 소유"로 취급되어 업그레이드 시 갱신되지 않던 결함. 정확한
+  이름으로 교정.
+- **`CLAUDE.md` 부록 테이블 정합 (H2)** — 60/61/62/63 규칙 파일 행에
+  "_/venom 실행 후 생성_" 주석을 달아 초기 설치 상태와 실제 존재 여부의
+  괴리를 해소.
+- **`session-start.sh` silent failure 제거 (M3)** — 메모리 주입 블록의
+  `2>/dev/null || true`가 규칙 7 "조용한 실패 금지"를 위반. 실패 시 stderr로
+  원인을 출력하도록 교체.
+- **`.gitignore` 경로 정합 (M1·M2)** — `.claude/.venom-backup/`을 실제 쓰는
+  `.venom-backup/`으로 교정. `.claude/settings.local.json`(개인 권한 토글)
+  제외 항목 추가.
+- **`mistake-recorder` / 메모리 프로토콜 정합 (M4)** — "500줄 넘으면 archive로
+  옮긴다"가 50-memory-protocol의 "승급 후 삭제" 모델과 충돌. "500줄 = 진화
+  대기열이 가득 찼다는 신호, evolve를 먼저 돌린다"로 정합화.
+- **`HARNESS_MEMORY_DIR` 일관화 (L3)** — `record-mistake.sh`,
+  `record-permission-denied.sh`, `record-stop-failure.sh`가 `.claude/memory`
+  경로를 하드코딩하여 환경변수를 무시하던 불일치. env 우선 · 기본값 폴백으로 통일.
+- **`inject-context.sh` `diff` 키워드 정밀화 (L2)** — 컨텍스트 주입 키워드가
+  너무 넓어 false positive 발생. `git diff|diff.*봐`로 좁힘.
+- **`evolved/token-saver` placeholder (L1)** — 빈 폴더 상태로 남아있던
+  placeholder에 설명 SKILL.md 추가.
+
+### Changed
+- **`npm test` 스크립트 전면 개편 (H3)** — 존재하지 않는 `tests/cli/*.test.mjs`
+  를 참조하여 항상 실패하던 상태를 의미 있는 검증으로 교체:
+  (a) 모든 `.claude/hooks/*.sh`와 `.claude/hooks/lib/*.sh`에 대해 `bash -n`
+  문법 검증, (b) `.claude/settings.json` JSON 로딩 검증.
+
+### Verified
+- 전체 hook/lib `bash -n` — 13/13 OK
+- `settings.json` / `package.json` JSON 파싱 — OK
+- `venom-init.mjs` `node --check` — OK
+- block-dangerous 회귀 스위트 — 17/17 통과 (`--force-with-lease` 허용 + 비밀
+  파일 차단 포함)
+- `trigger-evolution` 스모크 — 목 `mistakes.md`로 UNFILLED 감지 확인
+- `npm test` — OK
+
 ## [2.0.11] — 2026-04-16
 
 ### Fixed
