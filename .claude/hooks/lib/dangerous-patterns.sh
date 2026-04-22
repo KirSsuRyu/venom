@@ -24,19 +24,27 @@ DANGEROUS_PATTERNS=(
   # 강제 푸시 — --force 뒤에 공백/끝이 와야 매칭(--force-with-lease 제외).
   # --force-with-lease는 30-git-commit.md에 따라 표준 모드에서 허용된다.
   'git[[:space:]]+push[[:space:]].*--force([[:space:]]|$)'
-  'git[[:space:]]+push[[:space:]].*[[:space:]]-f([[:space:]]|$)'
+  'git[[:space:]]+push[[:space:]]+(.*[[:space:]])?-f([[:space:]]|$)'
   'git[[:space:]]+reset[[:space:]]+--hard'        # 파괴적 reset
   'git[[:space:]]+clean[[:space:]]+-fd'           # 파괴적 clean
   '--no-verify'                                   # git hook 우회
   '>[[:space:]]*/dev/sd[a-z]'                     # 원시 디스크로 redirect
   # 비밀 파일 읽기 차단 (20-security.md: .env/id_rsa/.aws/credentials 출력 금지).
   # Read 도구 deny만으론 Bash 셸 우회가 가능하므로 읽기 명령도 매칭한다.
-  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|>]*\.env([[:space:]]|$|\.)'
-  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|>]*id_rsa([[:space:]]|$)'
-  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|>]*id_ed25519([[:space:]]|$)'
-  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|>]*\.aws/credentials'
-  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|>]*\.ssh/id_'
-  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|>]*\.pem([[:space:]]|$)'
+  # [^|><]* — '<' 제외로 heredoc(cat <<'EOF') 본문에 .env 언급이 있어도 오탐되지 않음.
+  # 별도 '<' redirect 패턴은 `cat < .env` 형태의 stdin 우회를 잡는다.
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|><]*\.env([[:space:]]|$|\.)'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+<[[:space:]]*[^|><]*\.env([[:space:]]|$|\.)'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|><]*id_rsa([[:space:]]|$)'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+<[[:space:]]*[^|><]*id_rsa([[:space:]]|$)'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|><]*id_ed25519([[:space:]]|$)'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+<[[:space:]]*[^|><]*id_ed25519([[:space:]]|$)'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|><]*\.aws/credentials'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+<[[:space:]]*[^|><]*\.aws/credentials'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|><]*\.ssh/id_'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+<[[:space:]]*[^|><]*\.ssh/id_'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+[^|><]*\.pem([[:space:]]|$)'
+  '(cat|head|tail|less|more|bat|strings|xxd|od)[[:space:]]+<[[:space:]]*[^|><]*\.pem([[:space:]]|$)'
 )
 
 # shellcheck disable=SC2034

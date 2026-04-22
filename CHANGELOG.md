@@ -3,6 +3,30 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.1.1] — 2026-04-22
+
+### Security
+- **비밀 파일 stdin redirect 우회 차단** — `cat < .env` 같은 stdin redirect
+  경유 비밀 파일 읽기가 v2.1.0의 차단 패턴을 통과하던 우회 경로 보강. 6개
+  보조 패턴(`<` redirect 전용)을 기존 6개 쌍 뒤에 추가. 이제 모든 비밀 파일
+  케이스에 대해 `cat <file`, `cat <  file`, `cat<file` 등 전부 차단.
+
+### Fixed
+- **heredoc false positive 해소** — v2.1.0 패턴의 `[^|>]*`가 `<` 문자를 허용해,
+  본문에 `.env` 언급이 있는 정상적인 heredoc(예: 설치 가이드 출력)까지 차단되던
+  오탐 수정. `[^|><]*`로 좁혀 heredoc 구문을 우회한 뒤, 위의 보조 `<` 패턴으로
+  실제 stdin redirect 우회만 선택 차단.
+- **`git push -f` 패턴 누락 수정** — 기존 `git[[:space:]]+push[[:space:]].*[[:space:]]-f(...)`
+  패턴이 `-f`를 첫 인자로 받는 `git push -f` 형식을 놓치던 버그. 인자 유무와
+  무관하게 매칭되도록 `(.*[[:space:]])?-f(...)`로 교체. `-f`가 다른 인자로
+  이어지는 케이스(예: `origin feature-f`)는 계속 allow.
+
+### Verified
+- 회귀 스위트 확장 — 39/39 통과 (기존 14 + 비밀 파일 직접 13 + stdin redirect 6 +
+  heredoc/정상 6, 멀티라인 heredoc 포함).
+- `bash -n .claude/hooks/lib/dangerous-patterns.sh` OK.
+- `DANGEROUS_PATTERNS` 배열 길이 29 (v2.1.0 기준 +6).
+
 ## [2.1.0] — 2026-04-21
 
 전면 점검 세션 (ADR-0001). 보안/아키텍처/효율성/hook 안정성 4축에서 발견한
