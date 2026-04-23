@@ -3,6 +3,21 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.3.1] — 2026-04-23
+
+### Fixed
+- **`session-end-reminder.sh`를 `hooks/evolved/`에서 `hooks/`로 이동** —
+  `55-self-evolution.md`의 파일 배치 규칙에 따르면 `evolved/`는 사용자의 프로젝트가
+  venom을 사용하면서 스스로 진화한 결과물을 담는 공간이다. Venom 자체는 origin
+  프로젝트이므로 배포 시 `evolved/`에는 어떤 파일도 포함되어서는 안 된다.
+  v2.2.0에서 신규로 만든 SessionEnd 훅을 실수로 `evolved/`에 배치했던 것을 수정.
+  `git mv`로 히스토리 보존하여 이동.
+- `settings.json`의 SessionEnd 훅 경로도 플랫 경로로 동기화.
+
+### Verified
+- `npm test` 통과.
+- SessionEnd 훅 스모크 재검증 — `reason=clear` 입력 시 stderr로 dirty 요약 출력.
+
 ## [2.3.0] — 2026-04-23
 
 ### Added
