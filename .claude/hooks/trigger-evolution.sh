@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Stop hook — 세션 종료 전 진화 기회를 감지한다.
 #
-# mistakes.md를 스캔하여 동일 태그의 실수가 2회 이상이면
-# Claude에게 진화를 권고한다. 이것이 Venom을 "살아있게" 만드는 심장 박동.
+# 정책 (v2.2.0 이후): **SOFT-only**.
+#   과거에는 decision:block으로 Claude의 턴을 중단시켰지만, 이 방식은
+#   사용자 질문 대기 중에도 "Stop hook error"를 찍어 UX를 방해했다.
+#   이제 stderr 힌트만 출력하며 절대 차단하지 않는다.
 #
-# verify-before-stop.sh와 함께 Stop 이벤트에 등록된다.
-# verify가 빌드/테스트를 검증한다면, 이 hook은 "배움"을 검증한다.
+# 역할: mistakes.md를 스캔하여 동일 태그의 실수가 2회 이상이거나 미기입
+# 교훈 항목이 있으면 55-self-evolution.md 프로토콜에 따라 진화를 권고한다.
+# verify-before-stop.sh가 "코드 검증"이라면 이 훅은 "배움 검증".
 #
 # 토큰 비용: 진화 기회가 없으면 출력 0. 있을 때만 간결한 권고.
 
@@ -22,7 +25,7 @@ if [[ "$STOP_HOOK_ACTIVE" == "true" ]]; then
   exit 0
 fi
 
-# Claude가 유저에게 질문을 던진 턴이면 진화 권고를 스킵한다.
+# 질문 턴이면 조용히 스킵
 if is_question_stop "$INPUT"; then
   exit 0
 fi
@@ -53,32 +56,16 @@ REPEATED_TAGS=$(awk '
   }
 ' "$MISTAKES")
 
-# 오늘 세션에서 새로 추가된 실수가 있는지 확인 (미기입 항목)
-# record-mistake.sh는 "- 맥락:/한 일:/왜 틀렸나:/옳은 접근:/태그:" 필드에 Claude should fill 플레이스홀더를 남긴다.
-# 필드명이 한국어이므로 lesson:을 찾는 기존 패턴은 영원히 0을 반환했다.
+# 오늘 세션에서 새로 추가된 실수 중 교훈이 아직 채워지지 않은 항목 수
 UNFILLED=$(grep -c "(Claude should fill" "$MISTAKES" 2>/dev/null || echo 0)
 
-# 진화 기회가 있을 때만 출력
-NEEDS_EVOLUTION=false
 REASONS=""
+[[ -n "$REPEATED_TAGS" ]] && REASONS="${REASONS}반복 실수 태그: ${REPEATED_TAGS}. "
+[[ "$UNFILLED" -gt 0 ]]  && REASONS="${REASONS}교훈 미기입 항목 ${UNFILLED}개. "
 
-if [[ -n "$REPEATED_TAGS" ]]; then
-  NEEDS_EVOLUTION=true
-  REASONS="${REASONS}반복 실수 태그: ${REPEATED_TAGS}. "
-fi
-
-if [[ "$UNFILLED" -gt 0 ]]; then
-  NEEDS_EVOLUTION=true
-  REASONS="${REASONS}교훈 미기입 항목 ${UNFILLED}개. "
-fi
-
-if $NEEDS_EVOLUTION; then
-  # Stop 훅의 유효한 형식: decision=block + reason으로 Claude에게 진화를 권고.
-  # hookSpecificOutput.additionalContext는 Stop 훅 스키마에 존재하지 않음 → 검증 실패 유발.
-  jq -n --arg reasons "$REASONS" '{
-    decision: "block",
-    reason: ("[venom 진화 감지] " + $reasons + "55-self-evolution.md 프로토콜에 따라 진화를 고려하세요: 반복 실수 → 규칙/hook 강화, 미기입 교훈 → lessons.md 갱신.")
-  }'
+if [[ -n "$REASONS" ]]; then
+  # SOFT: stderr로 힌트만. Stop 흐름을 막지 않는다.
+  printf '🧬 [venom 진화 감지] %s55-self-evolution.md 프로토콜에 따라 진화를 고려하세요: 반복 실수 → 규칙/hook 강화, 미기입 교훈 → lessons.md 갱신.\n' "$REASONS" >&2
 fi
 
 exit 0

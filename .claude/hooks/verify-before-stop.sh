@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
-# Stop hook — Claude가 턴을 끝내기 직전 마지막 검증 게이트.
+# Stop hook — Claude가 턴을 끝내기 직전 마지막 점검 게이트.
 #
-# 3단계 검증:
-#   [HARD] 1단계 — 코드 검증: dirty 상태 + 빌드 매니페스트 존재 시 테스트 요구 (차단)
-#   [SOFT] 2단계 — 메모리 점검: 새 실수/교훈을 기록할 기회를 놓치지 않도록 힌트
-#   [SOFT] 3단계 — 문서 동기화: 최근 feat: 커밋이 있으면 문서 확인 권고
+# 정책 (v2.2.0 이후): **SOFT-only**.
+#   - 과거 HARD 차단 방식은 사용자 질문 턴에서도 간헐적으로 발동되어
+#     사용자 결정을 방해했다. 실제 "종료" 강제 검증은 SessionEnd 훅으로 이관되었다.
+#   - 이 훅은 이제 stderr 힌트만 출력하고, 절대 차단하지 않는다.
 #
-# 통과 조건 (어느 하나라도):
-#   - 깨끗한 작업 디렉토리 (변경 없음)
-#   - 빌드 매니페스트 없음 (테스트할 게 없는 프로젝트)
-#   - stop_hook_active=true (이미 한 번 차단했음 → 무한 루프 방지)
+# 3단계 힌트 (모두 SOFT / stderr):
+#   [1/3 코드 검증] dirty가 많으면 테스트/린트 실행을 권고
+#   [2/3 메모리]    최근 mistakes.md가 갱신됐으면 lessons.md 기록 권고
+#   [3/3 문서]      최근 feat: 커밋이 있으면 문서 확인 권고
 #
-# 토큰 비용 주의: 이 hook은 매 턴 종료마다 실행된다.
-#   HARD 차단: JSON 블록 출력 / SOFT 힌트: 짧은 텍스트만 출력
+# 통과 조건 (완전 스킵):
+#   - stop_hook_active=true (무한 루프 방지)
+#   - is_question_stop (사용자에게 질문한 턴)
+#
+# 토큰 비용: 모든 출력은 stderr 단문. 진짜 할 말이 있을 때만 출력.
 
 set -euo pipefail
 
@@ -27,7 +30,7 @@ if [[ "$STOP_HOOK_ACTIVE" == "true" ]]; then
   exit 0
 fi
 
-# Claude가 유저에게 질문을 던진 턴이면 검증을 스킵한다.
+# Claude가 유저에게 질문을 던진 턴이면 힌트도 내지 않는다 (사용자 시야 방해 최소화).
 if is_question_stop "$INPUT"; then
   exit 0
 fi
@@ -42,7 +45,8 @@ fi
 dirty=$(git -C "$REPO" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
 
 # ──────────────────────────────────────────────
-# [HARD] 1단계 — 코드 검증
+# [SOFT] 1/3 — 코드 검증 힌트
+#   dirty 파일이 많을수록 더 강하게 경고한다.
 # ──────────────────────────────────────────────
 if [[ "$dirty" -gt 0 ]]; then
   has_tests=false
@@ -51,33 +55,32 @@ if [[ "$dirty" -gt 0 ]]; then
   done
 
   if $has_tests; then
-    jq -n '{
-      decision: "block",
-      reason: "하네스가 종료를 차단함 [1/3 코드 검증]: 빌드/테스트 시스템이 있는 프로젝트에 커밋되지 않은 변경이 있습니다. 끝내기 전에 (1) 프로젝트의 테스트/린트/타입체크 명령을 실행하고, (2) 무엇을 바꿨고 무엇을 검증했는지 요약하고, (3) 항구적으로 배운 것이 있다면 .claude/memory/lessons.md를 갱신하세요. 그 다음 종료해도 됩니다."
-    }'
-    exit 0
+    if [[ "$dirty" -ge 10 ]]; then
+      printf '⚠️  [1/3 코드 검증] dirty 파일이 %d개 있습니다. 종료 전에 테스트/린트/타입체크를 반드시 실행하고, 변경 범위와 검증 결과를 요약하세요. (대규모 변경일수록 회귀 위험이 큽니다)\n' "$dirty" >&2
+    else
+      printf '💡 [1/3 코드 검증] dirty 파일 %d개. 끝내기 전에 프로젝트 테스트/린트를 실행하고 변경 요약을 남기세요.\n' "$dirty" >&2
+    fi
   fi
 fi
 
 # ──────────────────────────────────────────────
-# [SOFT] 2단계 — 메모리 점검 힌트
+# [SOFT] 2/3 — 메모리 점검 힌트
 # 최근 1시간 이내에 mistakes.md가 갱신됐으면 lessons.md 기록 권고
 # ──────────────────────────────────────────────
 MEMORY_DIR="${REPO}/${HARNESS_MEMORY_DIR:-.claude/memory}"
 if [[ -f "${MEMORY_DIR}/mistakes.md" ]]; then
-  # find -mmin +0 -mmin -60 = 최근 60분 이내 수정된 파일
   if find "${MEMORY_DIR}/mistakes.md" -mmin -60 2>/dev/null | grep -q .; then
-    echo "💡 [2/3 메모리 점검] 최근 mistakes.md가 갱신됐습니다. 이번 작업에서 배운 것을 lessons.md에도 기록했는지 확인하세요."
+    echo "💡 [2/3 메모리 점검] 최근 mistakes.md가 갱신됐습니다. 이번 작업에서 배운 것을 lessons.md에도 기록했는지 확인하세요." >&2
   fi
 fi
 
 # ──────────────────────────────────────────────
-# [SOFT] 3단계 — 문서 동기화 힌트
+# [SOFT] 3/3 — 문서 동기화 힌트
 # 최근 3개 커밋 중 feat: 타입이 있으면 문서 확인 권고
 # ──────────────────────────────────────────────
 recent_feat=$(git -C "$REPO" log --oneline -3 --no-merges 2>/dev/null | grep -c '^[a-f0-9]* feat:' || true)
 if [[ "$recent_feat" -gt 0 ]]; then
-  echo "💡 [3/3 문서 동기화] 최근 feat: 커밋이 있습니다. README, CHANGELOG 등 사용자 노출 문서가 코드 변경을 반영하는지 확인하세요. (git-workflow 스킬의 '문서 동기화 체크' 참고)"
+  echo "💡 [3/3 문서 동기화] 최근 feat: 커밋이 있습니다. README, CHANGELOG 등 사용자 노출 문서가 코드 변경을 반영하는지 확인하세요. (git-workflow 스킬의 '문서 동기화 체크' 참고)" >&2
 fi
 
 exit 0

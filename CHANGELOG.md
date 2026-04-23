@@ -3,6 +3,42 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.2.0] — 2026-04-23
+
+### Changed
+- **Stop 훅 정책: HARD → SOFT 전면 전환** — 사용자 질문 턴에서 `Stop hook error:`가
+  뜨며 사용자 결정을 방해하던 문제 해결. `verify-before-stop.sh`와
+  `trigger-evolution.sh`의 `decision:"block"` 출력을 제거하고, 모든 경고를
+  stderr 힌트로 내린다. Claude 턴 흐름은 절대 차단하지 않는다.
+- **종료 시 강제 검증은 SessionEnd로 이관** — 새 훅
+  `.claude/hooks/evolved/session-end-reminder.sh`가 세션이 실제로 끝날 때
+  dirty/미푸시 상태를 터미널 stderr로 요약 출력. Claude Code 스펙상 SessionEnd는
+  차단 불가(`reason`: clear/logout/prompt_input_exit/other)이지만, 사용자에게 직접
+  보여 남은 작업을 상기시킨다.
+
+### Added
+- `is_question_stop` 강화 — 훅 입력의 신설 `last_assistant_message` 필드를
+  최우선으로 사용(transcript 타이밍 이슈 회피). `AskUserQuestion` tool_use도
+  transcript 파싱으로 감지해, 도구 기반 질문 턴까지 안전하게 스킵한다.
+- 질문 감지 정규식 확장 — `stage할게요?`, `푸시할게요?`, `선택해 주`, `답해 주`,
+  `다음 중`, `진행하시겠`, `해드릴까요`, `드려도 될까` 등 강한 질문 지표 토큰 추가.
+  과거의 `$` 꼬리 앵커를 풀고 마지막 1500바이트 범위에서 토큰 매칭하도록 완화.
+- `.claude/hooks/evolved/` — 자기 진화 프로토콜(55-self-evolution.md)에 따른
+  신규 훅용 전용 경로. 첫 입주자: `session-end-reminder.sh`.
+
+### Fixed
+- **dirty 10개 이상일 때 강화된 경고** — `verify-before-stop.sh`가 대규모 미커밋
+  변경에 대해 `⚠️` 프리픽스와 함께 더 강한 문구로 경고한다. SOFT이지만 눈에 띄도록.
+
+### Verified
+- `npm test` 통과 — 14개 훅 스크립트 전부 `bash -n` OK, `settings.json` JSON 유효.
+- Stop 훅 스모크 테스트 — 질문 턴(`last_assistant_message`=질문) 완전 스킵,
+  비질문 dirty 턴에서 stderr 힌트만 출력, `stop_hook_active=true` 루프 방지 동작.
+- SessionEnd 훅 스모크 테스트 — `reason=clear|prompt_input_exit` 모두 exit 0,
+  dirty 파일 요약이 stderr로 출력됨.
+- `is_question_stop` 유닛 스모크 — 질문/비질문/빈 입력/마크다운 꼬리/도구 사용 턴
+  8케이스 전부 기대값 일치.
+
 ## [2.1.1] — 2026-04-22
 
 ### Security
