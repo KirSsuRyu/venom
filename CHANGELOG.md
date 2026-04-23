@@ -3,6 +3,44 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.3.0] — 2026-04-23
+
+### Added
+- **지연 진화(Deferred Evolution) 패턴 도입** — 진화 권고 타이밍을 "Stop 시점 stderr"에서
+  "다음 UserPromptSubmit 시점 컨텍스트 주입"으로 이동. 네 가지 제약을 동시에 충족:
+  질문 중엔 발동하지 않고, 작업이 진짜 끝난 뒤에만 뜨며, 사용자가 Claude와 함께
+  바로 대응할 수 있고, 세션 맥락이 살아있는 상태에서 주입된다.
+- 새 라이브러리 `.claude/hooks/lib/evolution-analyzer.sh` — `mistakes.md` 분석 로직을
+  추출. Stop 훅(큐잉)과 UserPromptSubmit 훅(소비 직전 재검증) 양쪽에서 공유.
+- 상태 디렉토리 `.claude/state/` — `pending-evolution` 큐 플래그용. `.gitignore`에
+  등재해 저장소에는 포함되지 않으며 로컬 세션 간에만 전파.
+
+### Changed
+- **`trigger-evolution.sh` 완전 리팩터** — stderr 출력 제거. 비질문 턴에 진화
+  기회가 감지되면 `.claude/state/pending-evolution` 플래그 파일에 타임스탬프만
+  기록. 실제 진화 이유는 소비 시점에 재계산한다 (사용자가 그 사이 `mistakes.md`를
+  정리했을 수 있는 stale 케이스 방어).
+- **`inject-context.sh` 큐 소비 블록 추가** — 매 프롬프트 시 큐 존재 여부 확인,
+  있으면 `mv` 기반 원자적 소비 후 재분석. 여전히 유효하면 `## 🧬 진화 큐` 섹션을
+  stdout으로 출력해 Claude 컨텍스트에 주입. 지침은 "현재 요청 우선, 자연스러운
+  타이밍에 진화 제안" — 현재 작업 흐름을 희생하지 않는 passive 전략.
+- 진화 권고는 Claude 컨텍스트로 직접 들어가므로 Claude가 자발적으로 사용자에게
+  제안할 수 있고, 사용자는 긴급도에 따라 즉시 대응/연기 결정 가능.
+
+### Fixed
+- 진화 권고 문자열의 꼬리 공백 정리 — `반복 실수 태그: #shell(3) . ` 같은
+  공백 이슈 제거 (`반복 실수 태그: #shell(3). `).
+- `trigger-evolution.sh`의 상태 디렉토리 생성 실패에 내성 추가 — read-only fs나
+  권한 문제로 `mkdir -p` 실패해도 `exit 0`으로 조용히 스킵.
+
+### Verified
+- 7개 시나리오 스모크 테스트 전부 통과: 빈 mistakes / 기회 감지 + 큐잉 /
+  질문 턴 가드 / 큐 + 유효 조건 → 주입 / 연속 프롬프트 중복 방지 /
+  stale 조건 자동 무효화 + 큐 소비 / 전체 훅 `bash -n` + JSON 유효성.
+- `npm test` 통과.
+- 컨텍스트 주입 포맷 육안 검증: Markdown 섹션 헤더 + 감지 시각 + 사유 +
+  사용자-우선 지침 형식으로 판매 상품 수준 확보.
+
 ## [2.2.0] — 2026-04-23
 
 ### Changed
