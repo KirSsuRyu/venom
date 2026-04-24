@@ -3,6 +3,27 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.4.2] — 2026-04-24
+
+### Added
+- **이전 버전 잔재 자동 청소** — `bin/venom-init.mjs`에 `RETIRED_SKILLS`·
+  `RETIRED_AGENTS`·`RETIRED_OUTPUT_STYLES` Set 도입. 업그레이드 시 이 목록에
+  해당하는 디렉토리/파일이 타깃에 남아있으면, `.venom-backup/<stamp>/`에 백업된
+  뒤 자동으로 제거된다. 옵션 불필요 — 기본 동작. v2.4.1 업그레이드 이후 과거
+  `code-review`·`debug-loop`·`test-runner` 스킬 폴더가 남아있던 기존 사용자는
+  다음 `npx @cgyou/venom-init` 한 번으로 정리된다.
+  - `findRetired(target)` — 타깃에서 제거 대상 항목을 수집.
+  - `cleanupRetired(target, paths, dryRun)` — `rmSync`로 실제 삭제.
+  - 백업이 보장될 때(`!noBackup && conflicts.length > 0`)만 동작해 안전성 확보.
+
+### Verified
+- `node --check bin/venom-init.mjs` 통과.
+- `npm test` 통과.
+- 드라이런 스모크 — 기존 사용자 시뮬레이션: `code-review` 스킬 폴더가 감지되고
+  `[dry-run] retired 제거` 라인이 정상 출력됨.
+- `--no-backup` 모드에서는 잔재 정리가 건너뛰어져 백업 없이 삭제되는 경로가
+  발생하지 않음을 확인.
+
 ## [2.4.1] — 2026-04-24
 
 ### Removed

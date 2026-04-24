@@ -60,6 +60,18 @@ const HARNESS_OUTPUT_STYLES = new Set([
   'venom-default',
 ]);
 
+// 과거 배포본에 포함됐지만 현재는 제거된 하네스 소유 항목 목록.
+// 업그레이드 시 이 목록에 해당하는 디렉토리/파일이 타깃에 존재하면
+// 전체 백업이 남은 상태에서 타깃에서 자동 제거한다 (사용자 옵션 불필요).
+// 여기에 항목을 추가하기 전에 반드시 .venom-backup에 백업이 먼저 생성되는지 확인.
+const RETIRED_SKILLS = new Set([
+  'code-review',   // v2.4.1: agents/code-reviewer 로 대체
+  'debug-loop',    // v2.4.1: agents/debug-detective 로 대체
+  'test-runner',   // v2.4.1: agents/test-writer 로 대체
+]);
+const RETIRED_AGENTS = new Set([]);
+const RETIRED_OUTPUT_STYLES = new Set([]);
+
 const log = (msg = '') => stdout.write(msg + '\n');
 const err = (msg = '') => stderr.write(msg + '\n');
 
@@ -276,6 +288,61 @@ function ensureExecutable(claudeDir) {
   walk(hooksDir);
 }
 
+// 과거 배포본에서 제공됐던 하네스 소유 항목 중, 이번 버전에서 제거된 것들을
+// 타깃 폴더에서 찾는다. 업그레이드 경로에서 "한때 하네스가 깔았지만 지금은
+// 사라진 것"을 식별해 자동 청소하기 위한 함수.
+function findRetired(target) {
+  const retired = [];
+  const skillsDir = join(target, '.claude', 'skills');
+  if (existsSync(skillsDir)) {
+    for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
+      if (entry.isDirectory() && RETIRED_SKILLS.has(entry.name)) {
+        retired.push(join('.claude', 'skills', entry.name));
+      }
+    }
+  }
+  const agentsDir = join(target, '.claude', 'agents');
+  if (existsSync(agentsDir)) {
+    for (const entry of readdirSync(agentsDir, { withFileTypes: true })) {
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        const name = entry.name.replace(/\.md$/, '');
+        if (RETIRED_AGENTS.has(name)) {
+          retired.push(join('.claude', 'agents', entry.name));
+        }
+      }
+    }
+  }
+  const stylesDir = join(target, '.claude', 'output-styles');
+  if (existsSync(stylesDir)) {
+    for (const entry of readdirSync(stylesDir, { withFileTypes: true })) {
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        const name = entry.name.replace(/\.md$/, '');
+        if (RETIRED_OUTPUT_STYLES.has(name)) {
+          retired.push(join('.claude', 'output-styles', entry.name));
+        }
+      }
+    }
+  }
+  return retired;
+}
+
+// retired 항목을 타깃에서 제거한다. 전제: 호출 직전 backup()으로 .claude/
+// 전체가 .venom-backup/<stamp>/ 하위에 이미 복사된 상태.
+function cleanupRetired(target, retiredPaths, dryRun) {
+  for (const rel of retiredPaths) {
+    const abs = join(target, rel);
+    if (dryRun) {
+      log(`[dry-run] retired 제거: ${rel}`);
+      continue;
+    }
+    try {
+      rmSync(abs, { recursive: true, force: true });
+    } catch (e) {
+      err(`경고: retired 항목 제거 실패 — ${rel}: ${e.message}`);
+    }
+  }
+}
+
 // 디렉토리를 재귀 순회하여 파일 상대 경로 목록을 반환한다.
 function walkFiles(dir) {
   const result = [];
@@ -459,6 +526,17 @@ function main() {
       }
     } else {
       log('충돌 없음 — 깨끗한 설치');
+    }
+
+    // 이전 버전 잔재 자동 청소: 과거 하네스가 깔았지만 현재 버전에서 제거된 항목.
+    // 백업이 이미 이뤄진 뒤에만 동작한다 (conflicts.length > 0 && !noBackup).
+    if (!opts.noBackup && conflicts.length > 0) {
+      const retired = findRetired(opts.target);
+      if (retired.length > 0) {
+        log(`이전 버전 잔재 감지: ${retired.join(', ')}`);
+        cleanupRetired(opts.target, retired, opts.dryRun);
+        if (!opts.dryRun) log('  → 백업 후 제거 완료');
+      }
     }
 
     const result = install(source, opts.target, opts.dryRun, opts.force);
