@@ -30,9 +30,12 @@ const _require = createRequire(import.meta.url);
 const VERSION = _require('../package.json').version;
 const REPO_URL = 'https://github.com/KirSsuRyu/venom.git';
 // 설치 대상 최상위 항목.
-const ITEMS = ['CLAUDE.md', '.claude'];
+const ITEMS = ['CLAUDE.md', '.claude', '.worktreeinclude'];
 // 사용자 로컬 파일 — 항상 보존하고 절대 덮어쓰지 않는다.
-const PRESERVE_PATHS = [join('.claude', 'settings.local.json')];
+const PRESERVE_PATHS = [
+  join('.claude', 'settings.local.json'),
+  'CLAUDE.local.md',
+];
 
 // 하네스가 기본 제공하는 스킬 이름 목록.
 // 이 목록에 없는 스킬(project-* 등)은 /venom이 생성한 사용자 소유로 간주한다.
@@ -45,6 +48,19 @@ const HARNESS_SKILLS = new Set([
   'mistake-recorder',
   'retro',
   'test-runner',
+]);
+
+// 하네스 기본 서브에이전트 — 업그레이드 시 갱신. 사용자 추가 에이전트는 보존.
+const HARNESS_AGENTS = new Set([
+  'code-reviewer',
+  'debug-detective',
+  'test-writer',
+  'security-auditor',
+]);
+
+// 하네스 기본 출력 스타일 — 업그레이드 시 갱신. 사용자 추가 스타일은 보존.
+const HARNESS_OUTPUT_STYLES = new Set([
+  'venom-default',
 ]);
 
 const log = (msg = '') => stdout.write(msg + '\n');
@@ -310,6 +326,18 @@ function isHarnessOwned(rel) {
   if (p.startsWith('.claude/skills/')) {
     const skillName = p.split('/')[2] ?? '';
     return HARNESS_SKILLS.has(skillName);
+  }
+
+  // agents/ → HARNESS_AGENTS에 있는 것만 하네스 소유. 파일명에서 .md 제거 후 비교.
+  if (p.startsWith('.claude/agents/')) {
+    const name = (p.split('/').pop() ?? '').replace(/\.md$/, '');
+    return HARNESS_AGENTS.has(name);
+  }
+
+  // output-styles/ → HARNESS_OUTPUT_STYLES에 있는 것만 하네스 소유.
+  if (p.startsWith('.claude/output-styles/')) {
+    const name = (p.split('/').pop() ?? '').replace(/\.md$/, '');
+    return HARNESS_OUTPUT_STYLES.has(name);
   }
 
   // memory/ → README.md만 하네스 소유, 나머지는 사용자 누적 데이터

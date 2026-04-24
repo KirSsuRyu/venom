@@ -44,6 +44,14 @@ just a rule pack — it's a **living symbiote** that infiltrates a project,
 - 📦 **Drop-in** — only two items (`CLAUDE.md` and `.claude/`) need to land in
   the project root. No dependencies, no install scripts required, no
   background processes.
+- 🤖 **Isolated-context subagents** (v2.4.0) — `code-reviewer` · `debug-detective`
+  · `test-writer` · `security-auditor` ship by default. Reviews, debugging, TDD,
+  and security audits run in **isolated contexts**, leaving your main conversation
+  tokens almost untouched.
+- 🎨 **Full official spec coverage** (v2.4.0) — `.claude/agents/`,
+  `.claude/output-styles/`, `statusLine`, `.worktreeinclude`, and `CLAUDE.local.md`
+  are all absorbed from Claude Code's official `.claude/` directory spec. A
+  persistent status line shows branch · dirty count · evolution queue at all times.
 
 ---
 

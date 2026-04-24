@@ -9,6 +9,9 @@
 # Claude 로컬 권한 토글 — 개인 파일이므로 저장소에 포함하지 않는다
 .claude/settings.local.json
 
+# CLAUDE.md 의 프로젝트-로컬 개인 오버라이드 — 공식 스펙
+CLAUDE.local.md
+
 # Venom 런타임 상태 (지연 진화 큐 등) — 로컬 전용, 세션 간 전파되지만 저장소에는 포함 안 함
 .claude/state/
 

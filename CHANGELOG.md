@@ -3,6 +3,52 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.4.0] — 2026-04-24
+
+### Added
+- **서브에이전트 4종 신규** (`.claude/agents/`) — 공식 Claude Code 스펙에 따른
+  격리 컨텍스트 위임. 메인 대화의 토큰을 아끼기 위해 특화 작업을 전담시킨다.
+  Claude Code가 `description` 필드로 자동 라우팅하고, 메인에는 최종 보고만 돌아온다.
+  - `code-reviewer` — diff·PR·변경사항 리뷰, 머지 전 점검. 읽기 전용 (Read, Grep,
+    Glob, Bash). OWASP Top 10 기반 항목별 체크, 🔴/🟡/🟢 3단계 출력 포맷.
+  - `debug-detective` — 버그·장애·테스트 실패 근본 원인 분석. Iron Law 3회 시도
+    제한 (3번 안에 못 고치면 멈추고 보고). Write/Edit 없음 (제안만).
+  - `test-writer` — 누락된 테스트 작성·TDD·회귀 테스트. 유일하게 Write/Edit 권한
+    있음. 프레임워크 자동 감지 후 Red→Green 사이클.
+  - `security-auditor` — OWASP Top 10 점검·취약점 스캔. 읽기 전용, 8/10 신뢰도
+    미달 시 보고하지 않음. 구체적 공격 시나리오 필수.
+- **출력 스타일** `.claude/output-styles/venom-default.md` — 5계명 톤과 4섹션 보고
+  템플릿(한 일 / 검증 / 안 한 것 / 다음 단계) 강제. 공식 스펙 준수.
+- **statusLine** `.claude/hooks/statusline.sh` — 매 프롬프트 하단에
+  `🐍 branch · N⚠ · 🧬 진화대기 · 📝 mistakes` 실시간 표시. 성능 예산 100ms,
+  실패해도 세션 방해 안 함. `settings.json`에 `statusLine` 섹션 등록.
+- **`.worktreeinclude`** — `git worktree add` 시 `.claude/memory/`·`.claude/state/`·
+  `.claude/settings.local.json`을 자동 동기화. 공식 Claude Code 스펙의 worktree
+  기능 지원.
+- **`CLAUDE.local.md` 지원** — `.gitignore`에 등재해 프로젝트-로컬 개인 지침을
+  저장소에 올리지 않도록 함. 공식 스펙.
+- **`bin/venom-init.mjs` 오너십 분류 확장** — `HARNESS_AGENTS`·
+  `HARNESS_OUTPUT_STYLES` Set 추가. 사용자가 직접 만든 커스텀 에이전트/스타일은
+  업그레이드 시에도 보존되고, 베이스라인 4종/1종만 덮어쓴다. `.worktreeinclude`도
+  `ITEMS`에 포함해 배포.
+
+### Changed
+- **`CLAUDE.md`** — 섹션 6 (서브에이전트 테이블), 섹션 7 (출력 스타일 · statusLine),
+  섹션 8 (개인 오버라이드: CLAUDE.local.md / settings.local.json) 신규 추가.
+  "일이 잘못됐을 때"는 섹션 9로 리넘버링.
+- **`.claude/rules/55-self-evolution.md`** — "서브에이전트 진화 (agents/)" 절 신규
+  삽입. Hook 진화·메모리 진화를 각각 #4, #5로 리넘버링. 에이전트 vs 스킬 선택
+  기준 명시.
+- **4개 언어 README 업데이트** (`README.md`·`README.en.md`·`README.zh-CN.md`·
+  `README.zh-TW.md`) — 격리 실행 서브에이전트 및 공식 스펙 완전 준수 항목 추가.
+
+### Verified
+- `npm test` 통과 (bash 문법 검증 + JSON 유효성 검증).
+- 4개 에이전트 YAML frontmatter 파서 검증 완료.
+- statusline 스모크 테스트 (`echo '{"cwd":"..."}' | statusline.sh`) 정상 출력 확인.
+- 드라이런 설치 테스트 — 사용자 커스텀 에이전트/스타일 보존, 베이스라인만 업데이트.
+- `node --check bin/venom-init.mjs` 문법 검증 통과.
+
 ## [2.3.1] — 2026-04-23
 
 ### Fixed

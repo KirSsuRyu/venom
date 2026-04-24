@@ -40,6 +40,14 @@ symbiote）**——在工作中持續學習、持續進化。
   任何語言都能運作。語言偵測在執行時發生，未安裝則靜默跳過。
 - 📦 **即插即用** —— 只需將 `CLAUDE.md` 和 `.claude/` 兩個檔案複製到專案根目錄。
   無相依性、無安裝腳本、無背景程序。
+- 🤖 **隔離執行子代理** (v2.4.0) —— `code-reviewer`、`debug-detective`、
+  `test-writer`、`security-auditor` 4 個專業子代理在獨立上下文中執行，
+  將主對話的 token 消耗最小化。`description` 欄位自動路由，只有最終報告
+  回到主上下文。
+- 🎨 **完全符合官方規範** (v2.4.0) —— `.claude/output-styles/`（5 誡調性·
+  4 章節報告範本）、`statusLine`（`🐍 branch · N⚠ · 🧬 進化待機 · 📝mistakes`）、
+  `.worktreeinclude`（worktree 同步記憶體/狀態）、`CLAUDE.local.md`（個人覆蓋，
+  不納入版控）全部支援。
 
 ---
 

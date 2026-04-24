@@ -40,6 +40,12 @@ symbiote）**——在工作中持续学习、持续进化。
   任何语言都能工作。语言检测在运行时发生，未安装则静默跳过。
 - 📦 **即插即用** —— 只需将 `CLAUDE.md` 和 `.claude/` 两个文件复制到项目根目录。
   无依赖、无安装脚本、无后台进程。
+- 🤖 **隔离上下文子代理** (v2.4.0) —— 默认内置 `code-reviewer` · `debug-detective`
+  · `test-writer` · `security-auditor` 四个子代理。代码审查、调试、TDD、安全审计
+  全部在**隔离上下文**中委派执行,几乎不消耗主对话的 token。
+- 🎨 **完整兼容官方规范** (v2.4.0) —— `.claude/agents/`、`.claude/output-styles/`、
+  `statusLine`、`.worktreeinclude`、`CLAUDE.local.md` 等 Claude Code 官方
+  `.claude/` 目录规范全部吸收。顶部状态栏常驻显示分支 · dirty 数量 · 进化队列。
 
 ---
 

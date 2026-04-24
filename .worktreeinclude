@@ -1,0 +1,12 @@
+# .worktreeinclude — git worktree 생성 시 하네스 상태/메모리를 함께 복사한다.
+# Claude Code가 이 파일을 읽어 새 worktree에 다음 경로를 동기화한다.
+#
+# 이유:
+#   .claude/memory/ 는 .gitignore 대상이 아니지만,
+#   .claude/state/ 는 로컬 런타임 상태로 gitignore 돼 있다.
+#   워크트리 전환 시 진화 큐가 유실되면 다음 프롬프트에서 컨텍스트가 깨진다.
+#   따라서 state 디렉토리는 명시적으로 포함시킨다.
+
+.claude/memory/
+.claude/state/
+.claude/settings.local.json

@@ -67,7 +67,34 @@ Venom은 1회성 설정 도구가 아니다. **프로젝트와 함께 살아 숨
 | `63-patterns.md` | 개발 패턴 카탈로그·에러 처리·비동기 규칙 — _/venom 실행 후 생성_ |
 | `70-…` | 추가 부록 (있으면 상위를 덮어씀) — 진화로 생성 시 `evolved/`에 배치 |
 
-## 6. 일이 잘못됐을 때
+## 6. 서브에이전트 (`.claude/agents/`) — 격리 컨텍스트 위임
+
+메인 대화의 토큰을 아끼기 위해 특화 작업은 서브에이전트에 위임한다.
+Claude Code가 `description` 필드로 자동 라우팅하고, 메인 컨텍스트에는 최종 보고만 돌아온다.
+
+| 에이전트 | 언제 쓰나 | 권한 |
+|---|---|---|
+| `code-reviewer` | diff·PR·변경사항 리뷰, 머지 전 점검 | Read, Grep, Glob, Bash (읽기 전용) |
+| `debug-detective` | 버그·장애·테스트 실패 근본 원인 분석 | Read, Grep, Glob, Bash (Iron Law 3회 제한) |
+| `test-writer` | 누락된 테스트 작성·TDD·회귀 테스트 | Read/Write/Edit/Grep/Glob/Bash |
+| `security-auditor` | 보안 감사·OWASP 점검·취약점 스캔 | Read, Grep, Glob, Bash (읽기 전용, 신뢰도 8/10+) |
+
+사용자가 새 에이전트를 만들면 `.claude/agents/<name>.md`에 YAML frontmatter 형식으로 추가한다.
+진화로 생성되는 에이전트는 `agents/evolved/` 경로 규칙을 따른다 (55 참고).
+
+## 7. 출력 스타일 · statusLine
+
+- `.claude/output-styles/venom-default.md` — 5계명 톤과 4섹션 보고 템플릿을 강제.
+  사용자가 다른 스타일을 쓰려면 설정에서 바꾸거나 새 스타일을 추가.
+- `.claude/hooks/statusline.sh` — 매 프롬프트 하단에 `🐍 branch · N⚠ · 🧬 진화대기 · 📝 mistakes`를 표시.
+  성능 예산 100ms. 실패해도 세션을 방해하지 않는다.
+
+## 8. 개인 오버라이드 (git에 올리지 않음)
+
+- `CLAUDE.local.md` — 프로젝트-로컬 개인 지침. `.gitignore` 처리됨.
+- `.claude/settings.local.json` — 개인 권한 토글. `.gitignore` 처리됨.
+
+## 9. 일이 잘못됐을 때
 
 hook이 동작을 차단하면 **이유를 읽고 근본 원인을 고친다.** 우회 금지.
 hook 자체가 잘못됐다고 판단되면 멈추고 사용자에게 말한다.
