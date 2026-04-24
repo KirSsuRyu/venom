@@ -40,14 +40,11 @@ const PRESERVE_PATHS = [
 // 하네스가 기본 제공하는 스킬 이름 목록.
 // 이 목록에 없는 스킬(project-* 등)은 /venom이 생성한 사용자 소유로 간주한다.
 const HARNESS_SKILLS = new Set([
-  'code-review',
   'compact-guide',
-  'debug-loop',
   'evolve',
   'git-workflow',
   'mistake-recorder',
   'retro',
-  'test-runner',
 ]);
 
 // 하네스 기본 서브에이전트 — 업그레이드 시 갱신. 사용자 추가 에이전트는 보존.

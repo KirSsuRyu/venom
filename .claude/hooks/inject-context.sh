@@ -27,7 +27,10 @@ if command -v git >/dev/null 2>&1 && git -C "$REPO" rev-parse --is-inside-work-t
   echo "- uncommitted files: $dirty"
 fi
 
-# --- 2. 스킬 힌트 (키워드 감지, 해당 시에만 1줄 출력) ---
+# --- 2. 스킬/에이전트 힌트 (키워드 감지, 해당 시에만 1줄 출력) ---
+# v2.4.1부터 code-review/debug-loop/test-runner 스킬이 제거되고 동등 기능이
+# 격리 실행 서브에이전트(code-reviewer, debug-detective, test-writer)로
+# 이관되었다. 힌트는 그쪽으로 라우팅한다.
 prompt_text=""
 if command -v python3 >/dev/null 2>&1 && [ -n "$INPUT" ]; then
   prompt_text=$(printf '%s' "$INPUT" | python3 -c "
@@ -41,32 +44,39 @@ except Exception:
 fi
 
 hint=""
+hint_kind=""
 if [ -n "$prompt_text" ]; then
   lower=$(printf '%s' "$prompt_text" | tr '[:upper:]' '[:lower:]')
 
-  # 디버깅/버그 단계 — debug-loop
+  # 디버깅/버그 단계 — debug-detective 에이전트
   if echo "$lower" | grep -qE '버그|에러|오류|왜.*안|안.*돼|실패|debug|error|broken|traceback|exception|왜.*동작|고쳐줘|안 돼|안돼'; then
-    hint="debug-loop"
-  # 보안 감사 — code-review (보안 모드)
+    hint="debug-detective"
+    hint_kind="에이전트"
+  # 보안 감사 — security-auditor 에이전트
   elif echo "$lower" | grep -qE '보안|취약|security|owasp|해킹|exploit|injection|xss|sqli|csrf|인증.*검토|auth.*review'; then
-    hint="code-review (보안 감사 모드)"
-  # 코드 리뷰 단계 — code-review
+    hint="security-auditor"
+    hint_kind="에이전트"
+  # 코드 리뷰 단계 — code-reviewer 에이전트
   elif echo "$lower" | grep -qE '리뷰|검토|pr.*봐|코드.*봐|git diff|diff.*봐|review|pull.request|머지 전|merge.*전|변경사항.*봐'; then
-    hint="code-review"
-  # 회고 단계 — retro
+    hint="code-reviewer"
+    hint_kind="에이전트"
+  # 회고 단계 — retro 스킬
   elif echo "$lower" | grep -qE '회고|retro|이번 주.*정리|뭘 했|무엇을 했|한 주|retrospective|지난.*정리'; then
     hint="retro"
-  # git 작업 — git-workflow
+    hint_kind="스킬"
+  # git 작업 — git-workflow 스킬
   elif echo "$lower" | grep -qE '커밋해|푸시해|브랜치.*만들|pr.*만들|commit|push|pull.request.*만들|스테이지|stage'; then
     hint="git-workflow"
-  # 테스트 — test-runner
+    hint_kind="스킬"
+  # 테스트 — test-writer 에이전트
   elif echo "$lower" | grep -qE '테스트.*돌려|테스트.*실행|test.*run|커버리지|coverage|테스트.*해줘'; then
-    hint="test-runner"
+    hint="test-writer"
+    hint_kind="에이전트"
   fi
 fi
 
 if [ -n "$hint" ]; then
-  echo "- 💡 추천 스킬: \`$hint\`"
+  echo "- 💡 추천 $hint_kind: \`$hint\`"
 fi
 
 # --- 3. 지연 진화 큐 소비 (Deferred Evolution, v2.3.0) ---

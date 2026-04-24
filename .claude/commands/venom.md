@@ -205,13 +205,13 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 
 판단 기준:
 
-| 감지된 특성 | 체인에 추가할 스킬 |
+| 감지된 특성 | 체인에 추가할 항목 |
 |---|---|
-| 인증·결제·개인정보 처리 코드 | `code-review` → **보안 감사 모드** 명시 |
-| 복잡한 비즈니스 로직 / 과거 버그 기록 | `debug-loop` 전면 배치 |
-| 테스트 프레임워크 존재 | `test-runner` 체인에 포함 |
-| PR 기반 협업 (브랜치 전략 확인) | `git-workflow` + PR 템플릿 |
-| feat: 커밋이 많은 활발한 개발 | 주간 `retro` 권장 |
+| 인증·결제·개인정보 처리 코드 | `security-auditor` 에이전트 머지 전 필수 |
+| 복잡한 비즈니스 로직 / 과거 버그 기록 | `debug-detective` 에이전트 전면 배치 |
+| 테스트 프레임워크 존재 | `test-writer` 에이전트 체인에 포함 |
+| PR 기반 협업 (브랜치 전략 확인) | `code-reviewer` 에이전트 + `git-workflow` 스킬 |
+| feat: 커밋이 많은 활발한 개발 | 주간 `retro` 스킬 권장 |
 | DB·마이그레이션 존재 | `project-build`(마이그레이션 포함) 강조 |
 
 도출한 체인을 **단계 이름 → 스킬 이름** 형태로 정리해둡니다.
@@ -239,15 +239,23 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 - 필요하면 `45-logging.md`, `46-observability.md`, `47-i18n.md` 같은
   새 도메인 규칙 파일을 추가.
 
-### 5.3 `.claude/skills/` 진화
+### 5.3 `.claude/skills/` · `.claude/agents/` 진화
+
+#### 기존 서브에이전트 진화 (v2.4.1부터 code-review·debug-loop·test-runner 스킬은 에이전트로 대체됨)
+- `agents/test-writer.md`: 이 프로젝트의 정확한 테스트 명령·인자·환경 변수,
+  테스트 디렉토리 관례, 프레임워크 특이사항을 본문에 반영.
+- `agents/code-reviewer.md`: 이 프로젝트의 CI 게이트, 아키텍처 규칙 위반 체크,
+  도메인 불변 규칙 검증, 알려진 함정을 체크리스트에 추가.
+- `agents/debug-detective.md`: 이 프로젝트의 로깅 시스템, 디버깅 도구,
+  관측 스택에 맞춰 진단 단계를 구체화. (예: "먼저 Datadog/Sentry에서 트레이스 확인")
+- `agents/security-auditor.md`: 프로젝트 특화 보안 핫스팟(인증 플로우, 결제 경로,
+  개인정보 마스킹)을 OWASP 체크리스트에 덧붙임.
 
 #### 기존 스킬 진화
-- `test-runner/SKILL.md`: 이 프로젝트의 정확한 명령·인자·환경 변수로 교체.
-- `code-review/SKILL.md`: 이 프로젝트의 CI 게이트, 아키텍처 규칙 위반 체크,
-  도메인 불변 규칙 검증, 알려진 함정을 체크리스트에 추가.
-- `git-workflow/SKILL.md`: 실제 PR 템플릿, 라벨, 리뷰어 규칙을 반영.
-- `debug-loop/SKILL.md`: 이 프로젝트의 로깅 시스템, 디버깅 도구, 관측 스택에
-  맞춰 진단 단계를 구체화. (예: "먼저 Datadog/Sentry에서 트레이스를 확인")
+- `skills/git-workflow/SKILL.md`: 실제 PR 템플릿, 라벨, 리뷰어 규칙을 반영.
+- `skills/retro/SKILL.md`·`skills/evolve/SKILL.md`·`skills/mistake-recorder/SKILL.md`·
+  `skills/compact-guide/SKILL.md`: 범용 템플릿이므로 프로젝트 특화 내용은
+  생기지 않으면 그대로 둔다.
 
 #### 신규 스킬 — 프로젝트 분석 결과에 따라 해당하는 것을 모두 생성
 
@@ -399,17 +407,17 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 
 **일반 기능 개발 흐름:**
 ```
-구현 → code-review → test-runner → git-workflow
+구현 → code-reviewer(에이전트) → test-writer(에이전트) → git-workflow(스킬)
 ```
 
 **버그 수정 흐름:**
 ```
-debug-loop → test-runner → code-review → git-workflow
+debug-detective(에이전트) → test-writer(에이전트) → code-reviewer(에이전트) → git-workflow(스킬)
 ```
 
 **보안 민감 변경 흐름:**  ← 인증·결제·개인정보 코드가 있는 경우에만
 ```
-구현 → code-review (보안 감사 모드) → test-runner → git-workflow
+구현 → security-auditor(에이전트) → test-writer(에이전트) → git-workflow(스킬)
 ```
 
 **주간 마무리:**

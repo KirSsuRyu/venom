@@ -3,6 +3,41 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.4.1] — 2026-04-24
+
+### Removed
+- **중복 스킬 3종 제거** — `code-review`, `debug-loop`, `test-runner`.
+  v2.4.0에서 도입한 격리 실행 서브에이전트(`code-reviewer`, `debug-detective`,
+  `test-writer`)가 동일 도메인을 더 나은 토큰 효율로 처리하므로 스킬 버전은
+  중복이었다. `git rm --cached`로 인덱스에서 제거 (작업 트리 파일은 사용자가
+  수동 삭제 또는 다음 `venom-init` 업그레이드로 정리).
+- **`bin/venom-init.mjs` `HARNESS_SKILLS`에서 3종 제거** — 신규 설치·업그레이드
+  시 해당 스킬이 더 이상 배포되지 않는다.
+
+### Changed
+- **`.claude/hooks/inject-context.sh` 힌트 라우팅 재작성** — 디버깅/보안/리뷰/
+  테스트 키워드가 이제 각각 `debug-detective` / `security-auditor` /
+  `code-reviewer` / `test-writer` 에이전트를 추천한다. `git-workflow`·`retro`는
+  스킬 그대로. 출력 접두어도 "추천 스킬" / "추천 에이전트"로 분리.
+- **`.claude/commands/venom.md`** — 스킬 체인 판단 기준 테이블·5.3 "기존 스킬
+  진화"·권장 체인 예시 전부 에이전트 경로로 교체.
+- **`.claude/README.md`** — 구조 다이어그램에 `agents/`·`output-styles/` 추가,
+  제거된 스킬 라인 삭제, `scan-secrets`·`session-end-reminder`·`statusline`·
+  `lib/evolution-analyzer`·`lib/stop-guard` 누락분 반영.
+- **`README.md`·`README.zh-CN.md`·`README.zh-TW.md`·`CONTRIBUTING.md`** —
+  기여 가이드의 `test-runner` 언급을 `test-writer` 에이전트로 교체.
+
+### Fixed
+- **`.claude/memory/decisions.md` 템플릿 복원** — v2.4.0 커밋에 실수로 포함된
+  ADR-0002를 제거. Venom 배포 저장소의 메모리 파일은 템플릿만 담아야 한다
+  (사용자 프로젝트가 ADR을 채우는 공간이므로).
+
+### Verified
+- `npm test` 통과 (bash 문법 + JSON 유효성).
+- `bash -n .claude/hooks/inject-context.sh` 통과.
+- `node --check bin/venom-init.mjs` 통과.
+- statusline·에이전트 frontmatter 재검증 통과.
+
 ## [2.4.0] — 2026-04-24
 
 ### Added

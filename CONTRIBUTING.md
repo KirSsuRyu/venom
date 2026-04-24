@@ -19,8 +19,8 @@ make lint    # bash 문법 + JSON 유효성
 - 🐛 **버그 리포트** — hook 오작동, 잘못된 차단, 누락된 위험 패턴
 - 💡 **신규 hook/skill/rule 제안** — 다른 프로젝트에서 검증된 패턴이라면
   이 저장소에 일반화해서 PR
-- 🌍 **언어/스택 커버리지 확장** — `auto-format.sh`에 새 포매터, `test-runner`
-  스킬에 새 테스트 러너, `venom.md`에 새 매니페스트 파일 인식 추가
+- 🌍 **언어/스택 커버리지 확장** — `auto-format.sh`에 새 포매터, `test-writer`
+  에이전트에 새 테스트 러너, `venom.md`에 새 매니페스트 파일 인식 추가
 - 🧬 **프로젝트별 진화 레시피** — 특정 프레임워크(Next.js, FastAPI, Spring,
   Rails 등)에 특화된 진화 레시피
 - 🌐 **번역** — 현재 한국어 우선, 영어는 `README.en.md`
