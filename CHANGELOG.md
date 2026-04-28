@@ -3,6 +3,36 @@
 이 프로젝트는 [Semantic Versioning](https://semver.org/)을 따릅니다.
 형식은 [Keep a Changelog](https://keepachangelog.com/)를 참고합니다.
 
+## [2.4.3] — 2026-04-28
+
+### Fixed
+- **`statusline.sh` 코드 펜스 false positive 수정** — `mistakes.md` 템플릿이
+  형식 예시를 ` ``` ` 코드 펜스 안에 두는데, 기존 `grep -cE '^## '` 가 펜스
+  내부의 예시(`## YYYY-MM-DDTHH:MM:SSZ ...`)까지 카운트해 갓 설치한 프로젝트도
+  `📝1` 로 표시되던 버그. awk 기반으로 펜스 토글 추적하도록 교체. 동일 로직이
+  `session-start.sh emit_recent_sections` 와 일치하게 되었음.
+- **statusline 멀티라인/제어문자 방어** — 합성 출력 직전에
+  `tr -d '\r' | head -n 1` 을 거쳐 어떤 경로로도 단일 줄 보장. 부모 statusline 이
+  실수로 멀티라인을 출력해도 statusline UI 가 깨지지 않는다.
+- **statusline에서 한글 "진화대기" 제거** — 일부 Claude Code 클라이언트에서
+  한글이 박스 문자로 깨지던 케이스 회피. 진화 큐 표시는 `🧬` 이모지만으로 압축.
+
+### Added
+- **부모 statusline 자동 체이닝** — `~/.claude/settings.json` 에 다른
+  `statusLine.command` 가 등록돼 있으면 `statusline.sh` 가 그 명령을 먼저 실행해
+  출력을 좌측에 붙인다. 형식: `[부모 출력] ┃ 🐍 main · 1⚠ · 📝3`.
+  사용자가 이미 쓰던 statusline 과 Venom statusline 이 같은 줄에 공존한다.
+  - 무한 재귀 방어: `VENOM_STATUSLINE_DEPTH` 환경변수 + 경로 패턴 매칭 이중 안전망.
+  - 옵트아웃: `VENOM_STATUSLINE_NO_CHAIN=1` 설정 시 Venom 단독 출력으로 회귀.
+  - 부모가 멀티라인을 뱉어도 첫 줄만 사용해 단일 줄 보장.
+
+### Verified
+- 9개 시나리오 스모크 — 정상 입력, 빈 stdin, 비-git 디렉토리, 잘못된 JSON,
+  부모 체이닝, DEPTH 재귀 가드, NO_CHAIN 옵트아웃, 자기-자신 부모 case 매칭,
+  멀티라인 부모 출력 단일 줄 truncate.
+- `bash -n .claude/hooks/statusline.sh` 통과.
+- `npm test` 통과.
+
 ## [2.4.2] — 2026-04-24
 
 ### Added
